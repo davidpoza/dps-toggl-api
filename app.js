@@ -11,11 +11,12 @@ const cors          = require("cors");
 const app           = express();
 
 // cargamos archivo de rutas
-const User        = require("./models/user");
-const user_routes = require("./routes/user");
-const task_routes = require("./routes/task");
-const auth_routes = require("./routes/auth");
-const errorMdw    = require("./middleware/errors");
+const User           = require("./models/user");
+const auth_routes    = require("./routes/auth");
+const user_routes    = require("./routes/user");
+const project_routes = require("./routes/project");
+const task_routes    = require("./routes/task");
+const errorMdw       = require("./middleware/errors");
 //middlewares
 
 passport.use(new LocalStrategy({
@@ -65,6 +66,7 @@ app.use(cors({origin: "*"}));
 app.use("/api/auth", auth_routes);
 app.use("/api", user_routes);
 app.use("/api", task_routes);
+app.use("/api", project_routes);
 
 
 //error Middleware
