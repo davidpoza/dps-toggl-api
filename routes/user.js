@@ -13,6 +13,7 @@ const UserController = require("../controllers/user");
 router.get("/users", md_auth.ensureAuthenticated, UserController.getUsers);
 router.get("/users/me", md_auth.ensureAuthenticated, UserController.getMe);
 router.put("/users/:id", md_auth.ensureAuthenticated, UserController.updateUser);
+router.delete("/users/:id", md_auth.ensureAuthenticated, UserController.deleteUser);
 
 
 module.exports = router;

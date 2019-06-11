@@ -34,6 +34,21 @@ let controller = {
         User.findOneAndUpdate({ _id: req.params.id }, update, {new:true})
             .then(data=>{res.json(data);})
             .catch(err=>next(err));
+    },
+
+    deleteUser: (req, res, next) => {
+        if(!req.params.id)
+            next(new error_types.Error400("id param with user id is rquired."));
+        if(req.user.admin==false)
+            next(new error_types.Error403("You are not allowed to delete this user"));
+        User.findOneAndDelete({ _id: req.params.id })
+            .then((data)=>{
+                if(data)
+                    res.json({data: {message:"User deleted succesfully."}});
+                else
+                    next(new error_types.Error400("User not found"));
+            })
+            .catch(err=>next(err));
     }
 };
 
