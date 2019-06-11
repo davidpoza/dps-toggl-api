@@ -15,6 +15,7 @@ const User           = require("./models/user");
 const auth_routes    = require("./routes/auth");
 const user_routes    = require("./routes/user");
 const project_routes = require("./routes/project");
+const tag_routes     = require("./routes/tag");
 const task_routes    = require("./routes/task");
 const errorMdw       = require("./middleware/errors");
 //middlewares
@@ -67,6 +68,7 @@ app.use("/api/auth", auth_routes);
 app.use("/api", user_routes);
 app.use("/api", task_routes);
 app.use("/api", project_routes);
+app.use("/api", tag_routes);
 
 
 //error Middleware
