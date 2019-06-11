@@ -21,6 +21,29 @@ let controller = {
                 res.json(data);
             })
             .catch(err=>next(err));
+    },
+    // the only users allowed to delete a task are admins and the task owner user
+    deleteTask: (req, res, next) => {
+        if(!req.params.id)
+            next(new error_types.Error400("id param with task id is rquired."));
+
+        Task.findById(req.params.id)
+            .then(data=>{
+                if(!data)
+                    throw(new error_types.Error404("Task not found"));
+                else if (!data.user.equals(req.user._id) && req.user.admin==false){
+                    throw(new error_types.Error403("You are not allowed to delete this task"));
+                }
+                else
+                    return Promise.resolve();
+            })
+            .then(()=>{
+                return Task.deleteOne({ _id: req.params.id });
+            })
+            .then(()=>{
+                res.json({data: {message:"Task deleted succesfully."}});
+            })
+            .catch(err=>next(err));
     }
 };
 

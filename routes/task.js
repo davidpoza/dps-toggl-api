@@ -11,6 +11,7 @@ const TaskController = require("../controllers/task");
 
 
 router.post("/tasks", md_auth.ensureAuthenticated, TaskController.createTask);
+router.delete("/tasks/:id", md_auth.ensureAuthenticated, TaskController.deleteTask);
 
 
 
