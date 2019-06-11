@@ -13,6 +13,7 @@ const app           = express();
 // cargamos archivo de rutas
 const User        = require("./models/user");
 const user_routes = require("./routes/user");
+const task_routes = require("./routes/task");
 const auth_routes = require("./routes/auth");
 const errorMdw    = require("./middleware/errors");
 //middlewares
@@ -63,6 +64,7 @@ app.use(cors({origin: "*"}));
 //rutas
 app.use("/api/auth", auth_routes);
 app.use("/api", user_routes);
+app.use("/api", task_routes);
 
 
 //error Middleware
