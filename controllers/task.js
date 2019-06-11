@@ -74,6 +74,32 @@ let controller = {
                 res.json({data: data});
             })
             .catch(err=>next(err));
+    },
+    /**
+     * only can be fetched the owned tasks. Unless you are admin and can fetch any task
+     * Parameters via query:
+     * -date: "2019-06-10"
+     * -user_id: ObjectId
+     *
+     */
+    getTasks: (req, res, next) => {
+        let filter = {};
+        if(req.user.admin == false)
+            filter["user"] = req.user._id;
+        else
+            filter["user"] = req.query.user_id;
+
+        if(req.query.date)
+            filter["date"] = req.query.date;
+
+        Task.find(filter)
+            .then(data=>{
+                if(data)
+                    res.json(data);
+                else
+                    throw new error_types.Error404("There are no tasks");
+            })
+            .catch(err=>next(err));
     }
 };
 
