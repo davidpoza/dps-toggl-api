@@ -62,7 +62,7 @@ app.use(cors({origin: "*"}));
 
 //rutas
 app.use("/api/auth", auth_routes);
-app.use("/api/user", user_routes);
+app.use("/api", user_routes);
 
 
 //error Middleware
