@@ -9,6 +9,11 @@ let controller = {
         User.find({ _id: { $ne: req.user._id }})
             .then(data=>{res.json(data);})
             .catch(err=>next(err));
+    },
+    getMe: (req, res, next) => {
+        User.findOne({ _id: req.user._id })
+            .then(data=>{res.json(data);})
+            .catch(err=>next(err));
     }
 };
 

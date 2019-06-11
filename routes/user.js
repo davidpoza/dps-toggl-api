@@ -11,5 +11,7 @@ const UserController = require("../controllers/user");
 
 
 router.get("/users", md_auth.ensureAuthenticated, UserController.getUsers);
+router.get("/users/me", md_auth.ensureAuthenticated, UserController.getMe);
+
 
 module.exports = router;
