@@ -65,6 +65,16 @@ let controller = {
             }
 
         })(req, res);
+    },
+    refresh: (req, res, next) => {
+        console.log("*** comienza generacion token*****");
+        const payload = {
+            sub: req.user._id,
+            exp: Date.now() + parseInt(process.env.JWT_LIFETIME),
+            email: req.user.email
+        };
+        const token = jwt.sign(JSON.stringify(payload), process.env.JWT_SECRET, {algorithm: process.env.JWT_ALGORITHM});
+        res.json({ data: { token: token } });
     }
 
 

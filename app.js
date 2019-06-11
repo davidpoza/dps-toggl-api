@@ -25,9 +25,8 @@ passport.use(new LocalStrategy({
     console.log("ejecutando *callback verify* de estategia local");
     User.findOne({email:email})
         .then(data=>{
-            console.log(data);
             if(data === null) return done(null, false); //el usuario no existe
-            else if(!bcrypt.compareSync(password, data.password)) { console.log(password, data.password);return done(null, false); } //no coincide la password
+            else if(!bcrypt.compareSync(password, data.password)) { return done(null, false); } //no coincide la password
             return done(null, data); //login ok
         })
         .catch(err=>done(err, null)); // error en DB
@@ -54,10 +53,10 @@ passport.use(new JwtStrategy(opts, (jwt_payload, done)=>{
         })
         .catch(err=>done(err, null)); //si hay un error lo devolvemos
 }));
-app.use(passport.initialize());
 //para que todo lo que llegue por body lo convierta a un objeto json
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(bodyParser.json());
+app.use(passport.initialize());
 app.use(cors({origin: "*"}));
 
 

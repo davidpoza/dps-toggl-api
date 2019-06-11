@@ -16,6 +16,7 @@ const AuthController = require("../controllers/auth");
 // router.delete("/users/:id", UserController.deleteUser);
 router.post("/register", AuthController.register);
 router.post("/authenticate", AuthController.login);
+router.post("/refresh", md_auth.ensureAuthenticated, AuthController.refresh);
 // router.get("/protegido", md_auth.ensureAuthenticated, UserController.protegido);
 
 module.exports = router;
