@@ -46,7 +46,7 @@ let controller = {
                 });
             })
             .then(()=>{
-                return Task.deleteOne({ _id: req.params.id });
+                return Project.deleteOne({ _id: req.params.id });
             })
             .then(()=>{
                 res.json({data: {message:"Project deleted succesfully."}});
