@@ -52,6 +52,28 @@ let controller = {
                 res.json({data: {message:"Project deleted succesfully."}});
             })
             .catch(err=>next(err));
+    },
+    /**
+     * only can be fetched the owned projects. Unless you are admin and can fetch any project
+     * Parameters via query:
+     *  -user_id: ObjectId
+     *
+     */
+    getProjects: (req, res, next) => {
+        let filter = {};
+        if(req.user.admin == false)
+            filter["owner"] = req.user._id;
+        else if(req.query.user_id)
+            filter["owner"] = req.query.user_id;
+
+        Project.find(filter)
+            .then(data=>{
+                if(data)
+                    res.json(data);
+                else
+                    throw new error_types.Error404("There are no projects");
+            })
+            .catch(err=>next(err));
     }
 };
 

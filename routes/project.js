@@ -11,7 +11,7 @@ const ProjectController = require("../controllers/project");
 
 
 router.post("/projects", md_auth.ensureAuthenticated, ProjectController.createProject);
-// router.get("/tasks", md_auth.ensureAuthenticated, TaskController.getTasks);
+router.get("/projects", md_auth.ensureAuthenticated, ProjectController.getProjects);
 router.delete("/projects/:id", md_auth.ensureAuthenticated, ProjectController.deleteProject);
 // router.put("/tasks/:id", md_auth.ensureAuthenticated, TaskController.updateTask);
 
