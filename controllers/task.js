@@ -86,7 +86,7 @@ let controller = {
         let filter = {};
         if(req.user.admin == false)
             filter["user"] = req.user._id;
-        else
+        else if(req.query.user_id)
             filter["user"] = req.query.user_id;
 
         if(req.query.date)
