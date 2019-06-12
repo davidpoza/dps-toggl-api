@@ -76,6 +76,38 @@ let controller = {
             })
             .catch(err=>next(err));
     },
+
+    /**
+     * only can be updated the owned projects. Unless you are admin and can modify any project
+     * Parameters via body:
+     *  -name: String
+     *  -tasks: [ObjectId]     *
+     */
+    updateTag: (req, res, next) => {
+        if(!req.params.id)
+            next(new error_types.Error400("id param with tag id is rquired."));
+        let update = {};
+        if(req.body.name) update["name"] = req.body.name;
+        if(req.body.tasks) update["tasks"] = req.body.tasks;
+
+        Tag.findById(req.params.id)
+            .then(data=>{
+                if(!data)
+                    throw(new error_types.Error404("Tag not found"));
+                else if (!data.user.equals(req.user._id) && req.user.admin==false){
+                    throw(new error_types.Error403("You are not allowed to modify this tag"));
+                }
+                else
+                    return Promise.resolve();
+            })
+            .then(()=>{
+                return Tag.findByIdAndUpdate(req.params.id, update, {new:true});
+            })
+            .then((data)=>{
+                res.json({data: data});
+            })
+            .catch(err=>next(err));
+    }
 };
 
 module.exports = controller;

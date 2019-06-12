@@ -13,7 +13,7 @@ const TagController = require("../controllers/tag");
 router.post("/tags", md_auth.ensureAuthenticated, TagController.createTag);
 router.get("/tags", md_auth.ensureAuthenticated, TagController.getTags);
 router.delete("/tags/:id", md_auth.ensureAuthenticated, TagController.deleteTag);
-// router.put("/projects/:id", md_auth.ensureAuthenticated, ProjectController.updateProject);
+router.put("/tags/:id", md_auth.ensureAuthenticated, TagController.updateTag);
 
 
 
