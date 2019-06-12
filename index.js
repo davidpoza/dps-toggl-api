@@ -5,7 +5,7 @@ const app       = require("./app");
 const port      = process.env.port;
 
 mongoogse.Promise = global.Promise;
-mongoogse.connect(process.env.MONGO_URI, { useNewUrlParser: true })
+mongoogse.connect(process.env.MONGO_URI, { useNewUrlParser: true, useFindAndModify:false })
 
     .then(() => {
         console.log("Conexión con exito");
