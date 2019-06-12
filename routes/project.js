@@ -12,6 +12,7 @@ const ProjectController = require("../controllers/project");
 
 router.post("/projects", md_auth.ensureAuthenticated, ProjectController.createProject);
 router.get("/projects", md_auth.ensureAuthenticated, ProjectController.getProjects);
+router.get("/projects/:id", md_auth.ensureAuthenticated, ProjectController.getProjectById);
 router.delete("/projects/:id", md_auth.ensureAuthenticated, ProjectController.deleteProject);
 router.put("/projects/:id", md_auth.ensureAuthenticated, ProjectController.updateProject);
 

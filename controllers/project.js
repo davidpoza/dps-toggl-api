@@ -76,6 +76,28 @@ let controller = {
 
         Project.find(filter).populate("tasks").exec()
             .then(data=>{
+                if(data){
+                    //data = data.map(e=>e.transform());
+                    res.json(data);
+                }
+                else
+                    throw new error_types.Error404("There are no projects");
+            })
+            .catch(err=>next(err));
+    },
+
+    getProjectById: (req, res, next) => {
+        if(!req.params.id)
+            next(new error_types.Error400("id param with project id is rquired."));
+        let filter = {};
+        if(req.user.admin == false){
+            filter["$or"] = [{owner:req.user._id}, {members:req.user._id}];
+        }
+        filter["_id"] = req.params.id;
+
+        Project.findOne(filter).populate("tasks")
+            .populate({path: "owner", select: "-password -admin"}).exec()
+            .then(data=>{
                 if(data)
                     res.json(data);
                 else
