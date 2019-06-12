@@ -4,6 +4,15 @@ const Task        = require("../models/task");
 const error_types = require("./error_types");
 
 let controller = {
+    /**
+     * Parameters via body:
+     *  -desc: String
+     *  -date: String
+     *  -start_hour: String
+     *  -end_hour: String
+     *  -tags: [ObjectId]
+     *  -project: ObjectId
+     */
     createTask: (req, res, next) => {
         if(!req.body.desc || !req.body.date || !req.body.start_hour || !req.body.end_hour)
             next(new error_types.Error400("desc, date, start_hour and end_hour fields are required."));
@@ -46,6 +55,16 @@ let controller = {
             .catch(err=>next(err));
     },
 
+    /**
+     * only can be updated the owned tasks. Unless you are admin and can modify any task
+     * Parameters via body:
+     *  -desc: String
+     *  -date: String
+     *  -start_hour: String
+     *  -end_hour: String
+     *  -project: ObjectId,
+     *  -tags: [Objectid]
+     */
     updateTask: (req, res, next) => {
         if(!req.params.id)
             next(new error_types.Error400("id param with task id is rquired."));
@@ -79,8 +98,7 @@ let controller = {
      * only can be fetched the owned tasks. Unless you are admin and can fetch any task
      * Parameters via query:
      * -date: "2019-06-10"
-     * -user_id: ObjectId
-     *
+     * -user_id: ObjectId (Only for admins)     *
      */
     getTasks: (req, res, next) => {
         let filter = {};

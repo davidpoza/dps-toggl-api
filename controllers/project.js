@@ -5,6 +5,11 @@ const Task        = require("../models/task");
 const error_types = require("./error_types");
 
 let controller = {
+    /**
+     * Parameters via body:
+     *  -name: String
+     *  -color: String
+     */
     createProject: (req, res, next) => {
         if(!req.body.name || !req.body.color)
             next(new error_types.Error400("name and color fields are required."));
@@ -23,9 +28,8 @@ let controller = {
     },
     /**
      * The only users allowed to delete a task are admins and the project owner user.
-     * When delete a project, all his tasks are set to project=null
-     *
-     * */
+     * When delete a project, all his tasks are set to project=null     *
+     */
     deleteProject: (req, res, next) => {
         if(!req.params.id)
             next(new error_types.Error400("id param with project id is rquired."));
@@ -57,7 +61,7 @@ let controller = {
     /**
      * only can be fetched the owned projects. Unless you are admin and can fetch any project
      * Parameters via query:
-     *  -user_id: ObjectId
+     *  -user_id: ObjectId (only for admins)
      *
      */
     getProjects: (req, res, next) => {
@@ -80,8 +84,8 @@ let controller = {
     /**
      * only can be updated the owned projects. Unless you are admin and can modify any project
      * Parameters via body:
-     *  -user_id: ObjectId
-     *
+     *  -name: String
+     *  -color: String
      */
     updateProject: (req, res, next) => {
         if(!req.params.id)

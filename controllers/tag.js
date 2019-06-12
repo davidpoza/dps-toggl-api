@@ -7,13 +7,16 @@ const error_types = require("./error_types");
 
 
 let controller = {
+    /**
+     * Parameters via body:
+     *  -name: String
+     */
     createTag: (req, res, next) => {
         if(!req.body.name)
             next(new error_types.Error400("name field is required."));
         let document = Tag({
             name: req.body.name,
-            user : req.user._id,
-            tasks: []
+            user : req.user._id
         });
         document.save()
             .then((data)=>{
@@ -23,9 +26,8 @@ let controller = {
     },
     /**
      * The only users allowed to delete a tag are admins and the tag owner user.
-     * When delete a tag, tags array from all affected tasks are updated
-     *
-     * */
+     * When delete a tag, tags array from all affected tasks are updated     *
+     */
     deleteTag: (req, res, next) => {
         if(!req.params.id)
             next(new error_types.Error400("id param with tag id is rquired."));
@@ -57,8 +59,7 @@ let controller = {
     /**
      * only can be fetched the owned tags. Unless you are admin and can fetch any tag
      * Parameters via query:
-     *  -user_id: ObjectId
-     *
+     *  -user_id: ObjectId     *
      */
     getTags: (req, res, next) => {
         let filter = {};

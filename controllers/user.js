@@ -16,7 +16,14 @@ let controller = {
             .then(data=>{res.json(data);})
             .catch(err=>next(err));
     },
-    // It allows modification of user data to the user or any administrator.
+    /**
+     * It allows modification of user data to the user or any administrator.
+     * Parameters via body:
+     *  -first_name: String
+     *  -last_name: String
+     *  -password: String
+     *  -repeat_password: String
+     */
     updateUser: (req, res, next) => {
         if(!req.params.id)
             next(new error_types.Error400("id param with user id is rquired."));
@@ -36,6 +43,11 @@ let controller = {
             .catch(err=>next(err));
     },
 
+    /**
+     * The only admins can delete users
+     * When delete a tag, tags array from all affected tasks are updated
+     *
+     **/
     deleteUser: (req, res, next) => {
         if(!req.params.id)
             next(new error_types.Error400("id param with user id is rquired."));
