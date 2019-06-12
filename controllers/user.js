@@ -5,9 +5,20 @@ const error_types = require("./error_types");
 
 let controller = {
     // return all users except current one
+    // removed password and admin(not for admins) fields
     getUsers: (req, res, next)=>{
-        User.find({ _id: { $ne: req.user._id }})
-            .then(data=>{res.json(data);})
+        if(req.user.admin)
+            User.find({ _id: { $ne: req.user._id }}, "-password")
+                .then(data=>{
+                    data = data.map(e=>e.transform());
+                    res.json(data);
+                })
+                .catch(err=>next(err));
+        else
+            User.find({ _id: { $ne: req.user._id }}, "-password -admin")
+                .then(data=>{
+                    res.json(data);
+                })
             .catch(err=>next(err));
     },
     // get user data from logged user

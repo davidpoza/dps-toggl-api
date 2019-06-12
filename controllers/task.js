@@ -152,7 +152,9 @@ let controller = {
             .catch(err=>next(err));
     },
     /**
-     * only can be fetched the owned tasks. Unless you are admin and can fetch any task
+     * only can be fetched the owned tasks. Unless you are admin and can fetch any task.
+     * The user, tags and project fields are populated. But user field projection removes
+     * the password and admin fields.
      * Parameters via query:
      * -date: "2019-06-10"
      * -user_id: ObjectId (Only for admins)     *
@@ -167,7 +169,7 @@ let controller = {
         if(req.query.date)
             filter["date"] = req.query.date;
 
-        Task.find(filter).populate("user").populate("tags").populate("project").exec()
+        Task.find(filter).populate({path:"user", select: "-password -admin"}).populate("tags").populate("project").exec()
             .then(data=>{
                 if(data)
                     res.json(data);
