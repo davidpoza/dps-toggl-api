@@ -1,6 +1,7 @@
 "use strict";
 
 const Task        = require("../models/task");
+const Tag         = require("../models/tag");
 const error_types = require("./error_types");
 
 let controller = {
@@ -63,7 +64,8 @@ let controller = {
      *  -start_hour: String
      *  -end_hour: String
      *  -project: ObjectId,
-     *  -tags: [Objectid]
+     *  -add_tags: [Objectid, ObjectId, ...]
+     *  -delete_tags: [Objectid, ObjectId, ...]
      */
     updateTask: (req, res, next) => {
         if(!req.params.id)
@@ -74,8 +76,8 @@ let controller = {
         if(req.body.start_hour) update["start_hour"] = req.body.start_hour;
         if(req.body.end_hour) update["end_hour"] = req.body.end_hour;
         if(req.body.project) update["project"] = req.body.project;
-        if(req.body.tags) update["tags"] = req.body.tags;
-
+        if(req.body.add_tags) update["$push"] = { "tags": { "$each" : req.body.add_tags } };
+        if(req.body.delete_tags) update["$pullAll"] = { "tags": req.body.delete_tags };
         Task.findById(req.params.id)
             .then(data=>{
                 if(!data)
@@ -85,6 +87,30 @@ let controller = {
                 }
                 else
                     return Promise.resolve();
+            })
+            .then(()=>{ //buscamos todas entidades de los tag que estamos añadiendo
+                if (req.body.add_tags)
+                    return Tag.find({_id: { $in: req.body.add_tags}});
+                return Promise.resolve();
+            })
+            .then((data)=>{ //añadimos las referencias a task en los tags correspondientes
+                if(req.body.add_tags)
+                    return Tag.updateMany({_id: {"$in": data}}, {
+                        "$push" : { "tasks": req.params.id }
+                    });
+                return Promise.resolve();
+            })
+            .then(()=>{ //buscamos todas entidades de los tag que estamos borrando
+                if (req.body.delete_tags)
+                    return Tag.find({_id: { $in: req.body.delete_tags}});
+                return Promise.resolve();
+            })
+            .then((data)=>{ //borramos las referencias a task en los tags correspondientes
+                if(req.body.delete_tags)
+                    return Tag.updateMany({_id: {"$in": data}}, {
+                        "$pull" : { "tasks": req.params.id }
+                    });
+                return Promise.resolve();
             })
             .then(()=>{
                 return Task.findByIdAndUpdate(req.params.id, update, {new:true});
@@ -110,7 +136,7 @@ let controller = {
         if(req.query.date)
             filter["date"] = req.query.date;
 
-        Task.find(filter)
+        Task.find(filter).populate("user").populate("tags").exec()
             .then(data=>{
                 if(data)
                     res.json(data);
