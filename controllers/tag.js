@@ -4,7 +4,7 @@ const Tag         = require("../models/tag");
 const Project     = require("../models/project");
 const Task        = require("../models/task");
 const error_types = require("./error_types");
-const Mongoose    = require("mongoose");
+
 
 let controller = {
     createTag: (req, res, next) => {
@@ -52,7 +52,30 @@ let controller = {
                 res.json({data: {message:"Tag deleted succesfully."}});
             })
             .catch(err=>next(err));
-    }
+    },
+
+    /**
+     * only can be fetched the owned tags. Unless you are admin and can fetch any tag
+     * Parameters via query:
+     *  -user_id: ObjectId
+     *
+     */
+    getTags: (req, res, next) => {
+        let filter = {};
+        if(req.user.admin == false)
+            filter["user"] = req.user._id;
+        else if(req.query.user_id)
+            filter["user"] = req.query.user_id;
+
+        Tag.find(filter)
+            .then(data=>{
+                if(data)
+                    res.json(data);
+                else
+                    throw new error_types.Error404("There are no tags");
+            })
+            .catch(err=>next(err));
+    },
 };
 
 module.exports = controller;
