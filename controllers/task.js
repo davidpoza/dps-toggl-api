@@ -167,7 +167,7 @@ let controller = {
         if(req.query.date)
             filter["date"] = req.query.date;
 
-        Task.find(filter).populate("user").populate("tags").exec()
+        Task.find(filter).populate("user").populate("tags").populate("project").exec()
             .then(data=>{
                 if(data)
                     res.json(data);
