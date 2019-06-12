@@ -12,7 +12,7 @@ let controller = {
     en este caso se realiza contra una base de datos asi que es muy sencillo hacerlo nosotros.
     */
     register: (req, res, next) => {
-        console.log("caso register");
+        // console.log("caso register");
         User.findOne({ email: req.body.email })
             .then(data => { //si la consulta se ejecuta
                 if (data) { //si el usuario existe
@@ -39,7 +39,7 @@ let controller = {
             });
     },
     login: (req, res, next) => {
-        console.log("caso login");
+        // console.log("caso login");
         passport.authenticate("local", { session: false }, (error, user) => {
             console.log("ejecutando *callback auth* de authenticate para estrategia local");
 

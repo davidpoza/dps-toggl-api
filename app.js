@@ -25,7 +25,7 @@ passport.use(new LocalStrategy({
     passwordField: "password",
     session: false
 }, (email, password, done)=>{
-    console.log("ejecutando *callback verify* de estategia local");
+    // console.log("ejecutando *callback verify* de estategia local");
     User.findOne({email:email})
         .then(data=>{
             if(data === null) return done(null, false); //el usuario no existe
@@ -42,7 +42,7 @@ opts.secretOrKey = process.env.JWT_SECRET;
 opts.algorithms = [process.env.JWT_ALGORITHM];
 
 passport.use(new JwtStrategy(opts, (jwt_payload, done)=>{
-    console.log("ejecutando *callback verify* de estategia jwt");
+    // console.log("ejecutando *callback verify* de estategia jwt");
     User.findOne({_id: jwt_payload.sub})
         .then(data=>{
             if (data === null) { //no existe el usuario
