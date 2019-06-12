@@ -57,7 +57,9 @@ let controller = {
     },
 
     /**
-     * only can be updated the owned tasks. Unless you are admin and can modify any task
+     * only can be updated the owned tasks. Unless you are admin and can modify any task.
+     * First of all we check that new tags aren't already assigned to the task.
+     * In case of adding or deleting tags, we check that these exist.
      * Parameters via body:
      *  -desc: String
      *  -date: String
@@ -70,6 +72,8 @@ let controller = {
     updateTask: (req, res, next) => {
         if(!req.params.id)
             next(new error_types.Error400("id param with task id is rquired."));
+        if(req.body.add_tags && req.body.delete_tags)
+            next(new error_types.Error400("It's not possible adding and deleting tags in the same request."));
         let update = {};
         if(req.body.desc) update["desc"] = req.body.desc;
         if(req.body.date) update["date"] = req.body.date;
@@ -78,15 +82,42 @@ let controller = {
         if(req.body.project) update["project"] = req.body.project;
         if(req.body.add_tags) update["$push"] = { "tags": { "$each" : req.body.add_tags } };
         if(req.body.delete_tags) update["$pullAll"] = { "tags": req.body.delete_tags };
-        Task.findById(req.params.id)
+        Task.findById(req.params.id).lean().exec()
             .then(data=>{
                 if(!data)
                     throw(new error_types.Error404("Task not found"));
                 else if (!data.user.equals(req.user._id) && req.user.admin==false){
                     throw(new error_types.Error403("You are not allowed to modify this task"));
                 }
+                else if(req.body.add_tags){
+                    data.tags = data.tags.map(e=>{
+                        e = e.toString();
+                        return e;
+                    });
+                    /*we make intersection between new tags and existing tags, it must be void.
+                    Otherwise it means a new tag is already a assigned to the task*/
+                    if(data.tags.filter(e => req.body.add_tags.includes(e)).length != 0)
+                        throw(new error_types.Error400("Some tag you are trying to add is already a assigned."));
+                }
                 else
                     return Promise.resolve();
+            })
+            .then(()=>{
+                if(req.body.add_tags){
+                    return Tag.countDocuments({_id: {"$in": req.body.add_tags}})
+                        .then(count=>{
+                            if(count != req.body.add_tags.length)
+                                throw new error_types.Error400("You are trying to add tags that do not exist.");
+                        });
+                }
+                if(req.body.delete_tags){
+                    return Tag.countDocuments({_id: {"$in": req.body.delete_tags}})
+                        .then(count=>{
+                            if(count != req.body.delete_tags.length)
+                                throw new error_types.Error400("You are trying to delete tags that do not exist.");
+                        });
+                }
+                return Promise.resolve();
             })
             .then(()=>{ //buscamos todas entidades de los tag que estamos añadiendo
                 if (req.body.add_tags)
