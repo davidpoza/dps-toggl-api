@@ -26,7 +26,7 @@ passport.use(new LocalStrategy({
     session: false
 }, (email, password, done)=>{
     // console.log("ejecutando *callback verify* de estategia local");
-    User.findOne({email:email})
+    User.findOne({email:email.toLowerCase()})
         .then(data=>{
             if(data === null) return done(null, false); //el usuario no existe
             else if(!bcrypt.compareSync(password, data.password)) { return done(null, false); } //no coincide la password

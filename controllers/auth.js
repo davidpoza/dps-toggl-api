@@ -13,16 +13,16 @@ let controller = {
     */
     register: (req, res, next) => {
         // console.log("caso register");
-        User.findOne({ email: req.body.email })
+        User.findOne({ email: req.body.email.toLowerCase() })
             .then(data => { //si la consulta se ejecuta
                 if (data) { //si el usuario existe
                     throw new error_types.InfoError("user already exists");
                 }
                 else { //si no existe el usuario se crea/registra
-                    console.log("creando usuario");
+                    //console.log("creando usuario");
                     var hash = bcrypt.hashSync(req.body.password, parseInt(process.env.BCRYPT_ROUNDS));
                     let document = new User({
-                        email: req.body.email,
+                        email: req.body.email.toLowerCase(),
                         first_name: req.body.first_name || "",
                         last_name: req.body.last_name || "",
                         password: hash,
