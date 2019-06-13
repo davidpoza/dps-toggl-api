@@ -78,6 +78,25 @@ let controller = {
             .catch(err=>next(err));
     },
 
+    getTagById: (req, res, next) => {
+        if(!req.params.id)
+            next(new error_types.Error400("id param with tag id is rquired."));
+        let filter = {};
+        if(req.user.admin == false){
+            filter["user"] = req.user._id;
+        }
+        filter["_id"] = req.params.id;
+
+        Tag.findOne(filter)
+            .then(data=>{
+                if(data)
+                    res.json(data);
+                else
+                    throw new error_types.Error404("There are no tags");
+            })
+            .catch(err=>next(err));
+    },
+
     /**
      * only can be updated the owned projects. Unless you are admin and can modify any project
      * Parameters via body:
