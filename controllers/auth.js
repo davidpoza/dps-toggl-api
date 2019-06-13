@@ -60,8 +60,11 @@ let controller = {
 
                 /*solo inficamos el payload ya que el header ya lo crea la lib jsonwebtoken internamente
                 para el calculo de la firma y así obtener el token*/
-                const token = jwt.sign(JSON.stringify(payload), process.env.JWT_SECRET, {algorithm: process.env.JWT_ALGORITHM});
-                res.json({ data: { token: token } });
+                jwt.sign(JSON.stringify(payload), process.env.JWT_SECRET, {algorithm: process.env.JWT_ALGORITHM}, (err, token)=>{
+                    if(err) next(err);
+                    else res.json({ data: { token: token } });
+                });
+
             }
 
         })(req, res);
@@ -73,8 +76,10 @@ let controller = {
             exp: Date.now() + parseInt(process.env.JWT_LIFETIME),
             email: req.user.email
         };
-        const token = jwt.sign(JSON.stringify(payload), process.env.JWT_SECRET, {algorithm: process.env.JWT_ALGORITHM});
-        res.json({ data: { token: token } });
+        jwt.sign(JSON.stringify(payload), process.env.JWT_SECRET, {algorithm: process.env.JWT_ALGORITHM}, (err, token)=>{
+            if(err) next(err);
+            else res.json({ data: { token: token } });
+        });
     }
 
 

@@ -1,7 +1,6 @@
 "use strict";
 
 const Tag         = require("../models/tag");
-const Project     = require("../models/project");
 const Task        = require("../models/task");
 const error_types = require("./error_types");
 

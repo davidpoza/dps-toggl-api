@@ -1,6 +1,5 @@
 "use strict";
 
-const Schema = require("mongoose").Schema;
 const Project     = require("../models/project");
 const Task        = require("../models/task");
 const User        = require("../models/user");
