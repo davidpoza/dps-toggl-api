@@ -1,8 +1,11 @@
 "use strict";
 
+const mongoose = require("mongoose");
+
 const Task        = require("../models/task");
 const Tag         = require("../models/tag");
 const error_types = require("./error_types");
+
 
 let controller = {
     /**
@@ -155,28 +158,95 @@ let controller = {
      * only can be fetched the owned tasks. Unless you are admin and can fetch any task.
      * The user, tags and project fields are populated. But user field projection removes
      * the password and admin fields.
+     *
      * Parameters via query:
-     * -date: "2019-06-10"
-     * -user_id: ObjectId (Only for admins)     *
+     * -date: "2019-06-10" (if date is not specified then fetchs all tasks grouped by dates)
+     * -user_id: ObjectId (Only for admins)
+     *
      */
     getTasks: (req, res, next) => {
         let filter = {};
         if(req.user.admin == false)
             filter["user"] = req.user._id;
         else if(req.query.user_id)
-            filter["user"] = req.query.user_id;
+            filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
 
-        if(req.query.date)
+        if(req.query.date){
             filter["date"] = req.query.date;
+            Task.find(filter).populate({path:"user", select: "-password -admin"}).populate("tags").populate("project").exec()
+                .then(data=>{
+                    if(data)
+                        res.json(data);
+                    else
+                        throw new error_types.Error404("There are no tasks");
+                })
+                .catch(err=>next(err));
+        }
+        else{
+            Task.aggregate([
+                {
+                    "$match": filter
+                },
+                {
+                    "$lookup": {
+                        from: "users",
+                        localField: "user",
+                        foreignField: "_id",
+                        as: "user"
+                    }
+                },
+                {
+                    "$project": {
+                        _id: "$_id",
+                        date: "$date",
+                        desc: "$desc",
+                        start_hour: "$start_hour",
+                        end_hour: "$end_hour",
+                        project: "$project",
+                        tags: "$tags",
+                        user: { "$arrayElemAt": [ "$user", 0 ] },
+                    }
+                },
+                {
+                    "$group": {
+                        _id: { date: "$date" },
+                        task_count: {
+                            $sum: 1
+                        },
+                        tasks: { $push:  {
+                            _id: "$_id",
+                            desc: "$desc",
+                            start_hour: "$start_hour",
+                            end_hour: "$end_hour",
+                            user: {
+                                _id: "$user._id",
+                                email:"$user.email",
+                                first_name: "$user.first_name",
+                                last_name: "$user.last_name",
+                            },
+                            project: "$project",
+                            tags: "$tags"
 
-        Task.find(filter).populate({path:"user", select: "-password -admin"}).populate("tags").populate("project").exec()
-            .then(data=>{
-                if(data)
-                    res.json(data);
-                else
-                    throw new error_types.Error404("There are no tasks");
-            })
-            .catch(err=>next(err));
+                        } }
+                    }
+                },
+                {
+                    "$project": {
+                        _id: 0,
+                        date: "$_id.date",
+                        tasks: "$tasks",
+                        task_count: 1
+                    }
+                }
+            ])
+                .then(data=>{
+                    if(data)
+                        res.json(data);
+                    else
+                        throw new error_types.Error404("There are no tasks");
+                })
+                .catch(err=>next(err));
+        }
     }
 };
 
