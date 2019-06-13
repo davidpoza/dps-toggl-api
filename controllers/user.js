@@ -24,6 +24,19 @@ let controller = {
             .then(data=>{res.json(data);})
             .catch(err=>next(err));
     },
+
+    /**
+     * fetch user info except password and admin status
+     *
+     * Parameters via params:
+     *  -id (user id)
+     */
+    getUser: (req, res, next) => {
+        User.findOne({ _id: req.params.id }, "-password -admin")
+            .then(data=>{res.json(data);})
+            .catch(err=>next(err));
+    },
+
     /**
      * It allows modification of user data to the user or any administrator.
      * Parameters via body:
