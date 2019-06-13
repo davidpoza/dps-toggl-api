@@ -4,8 +4,10 @@ const User        = require("../models/user");
 const error_types = require("./error_types");
 
 let controller = {
-    // return all users except current one
-    // removed password and admin(not for admins) fields
+    /**
+     * return all users except current one
+     * removed password and admin(not for admins) fields
+     */
     getUsers: (req, res, next)=>{
         if(req.user.admin)
             User.find({ _id: { $ne: req.user._id }}, "-password")
@@ -39,6 +41,10 @@ let controller = {
 
     /**
      * It allows modification of user data to the user or any administrator.
+     *
+     * Parameters via params:
+     *  -id (user id)
+     *
      * Parameters via body:
      *  -first_name: String
      *  -last_name: String
@@ -46,8 +52,6 @@ let controller = {
      *  -repeat_password: String
      */
     updateUser: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with user id is rquired."));
         let update = {};
         if(req.body.first_name) update["first_name"] = req.body.first_name;
         if(req.body.last_name) update["last_name"] = req.body.last_name;
@@ -68,10 +72,10 @@ let controller = {
      * The only admins can delete users
      * When delete a tag, tags array from all affected tasks are updated
      *
+     * Parameters via params:
+     *  -id (user id)
      **/
     deleteUser: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with user id is rquired."));
         if(req.user.admin==false)
             next(new error_types.Error403("You are not allowed to delete this user"));
         User.findOneAndDelete({ _id: req.params.id })

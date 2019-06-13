@@ -30,12 +30,12 @@ let controller = {
     },
     /**
      * The only users allowed to delete a task are admins and the project owner user.
-     * When delete a project, all his tasks are set to project=null     *
+     * When delete a project, all his tasks are set to project=null
+     *
+     * Parameters via params
+     * - id (project id)
      */
     deleteProject: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with project id is rquired."));
-
         Project.findById(req.params.id)
             .then(data=>{
                 if(!data)
@@ -86,9 +86,13 @@ let controller = {
             .catch(err=>next(err));
     },
 
+    /**
+     * The only users allowed to fetch a project are admins and the project owner user.
+     *
+     * Parameters via params
+     * - id (project id)
+     */
     getProjectById: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with project id is rquired."));
         let filter = {};
         if(req.user.admin == false){
             filter["$or"] = [{owner:req.user._id}, {members:req.user._id}];
@@ -110,6 +114,10 @@ let controller = {
      * only can be updated the owned projects. Unless you are admin and can modify any project.
      * First of all we check that new members aren't already project members.
      * In case of adding or deleting members, we check that these exist.
+     *
+     * Parameters via params
+     *  -id (project id)
+     *
      * Parameters via body:
      *  -name: String
      *  -color: String
@@ -117,8 +125,6 @@ let controller = {
      *  -delete_members: [ObjectId, ObjectId, ...]     *
      */
     updateProject: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with project id is rquired."));
         if(req.body.add_members && req.body.delete_members)
             next(new error_types.Error400("It's not possible adding and deleting members in the same request."));
         let update = {};

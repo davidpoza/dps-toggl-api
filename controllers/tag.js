@@ -24,14 +24,15 @@ let controller = {
             })
             .catch(err=>next(err));
     },
+
     /**
      * The only users allowed to delete a tag are admins and the tag owner user.
-     * When delete a tag, tags array from all affected tasks are updated     *
+     * When delete a tag, tags array from all affected tasks are updated
+     *
+     * Parameters via params
+     *  - id (tag id)
      */
     deleteTag: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with tag id is rquired."));
-
         Tag.findById(req.params.id)
             .then(data=>{
                 if(!data)
@@ -78,9 +79,13 @@ let controller = {
             .catch(err=>next(err));
     },
 
+    /**
+     * The only users allowed to fetch a tag are admins and the tag owner user.
+     *
+     * Parameters via params
+     *  - id (tag id)
+     */
     getTagById: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with tag id is rquired."));
         let filter = {};
         if(req.user.admin == false){
             filter["user"] = req.user._id;
@@ -99,13 +104,15 @@ let controller = {
 
     /**
      * only can be updated the owned projects. Unless you are admin and can modify any project
+     *
+     * Parameters via params:
+     *  -id (tag id)
+     *
      * Parameters via body:
      *  -name: String
      *  -tasks: [ObjectId]     *
      */
     updateTag: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with tag id is rquired."));
         let update = {};
         if(req.body.name) update["name"] = req.body.name;
         if(req.body.tasks) update["tasks"] = req.body.tasks;

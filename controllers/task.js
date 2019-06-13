@@ -35,11 +35,22 @@ let controller = {
             })
             .catch(err=>next(err));
     },
-    // the only users allowed to delete a task are admins and the task owner user
-    deleteTask: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with task id is rquired."));
 
+    /**
+     * The only users allowed to delete a task are admins and the task owner user
+     *
+     * Parameters via params:
+     *  -id (task id)
+     *
+     * Parameters via body:
+     *  -desc: String
+     *  -date: String
+     *  -start_hour: String
+     *  -end_hour: String
+     *  -tags: [ObjectId]
+     *  -project: ObjectId
+     */
+    deleteTask: (req, res, next) => {
         Task.findById(req.params.id)
             .then(data=>{
                 if(!data)
@@ -63,6 +74,10 @@ let controller = {
      * only can be updated the owned tasks. Unless you are admin and can modify any task.
      * First of all we check that new tags aren't already assigned to the task.
      * In case of adding or deleting tags, we check that these exist.
+     *
+     * Parameters via params
+     *  -id (task id)
+     *
      * Parameters via body:
      *  -desc: String
      *  -date: String
@@ -73,8 +88,6 @@ let controller = {
      *  -delete_tags: [Objectid, ObjectId, ...]
      */
     updateTask: (req, res, next) => {
-        if(!req.params.id)
-            next(new error_types.Error400("id param with task id is rquired."));
         if(req.body.add_tags && req.body.delete_tags)
             next(new error_types.Error400("It's not possible adding and deleting tags in the same request."));
         let update = {};
