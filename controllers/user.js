@@ -9,17 +9,14 @@ let controller = {
     getUsers: (req, res, next)=>{
         if(req.user.admin)
             User.find({ _id: { $ne: req.user._id }}, "-password")
-                .then(data=>{
-                    data = data.map(e=>e.transform());
-                    res.json(data);
-                })
+                .then(data=>res.json(data))
                 .catch(err=>next(err));
         else
             User.find({ _id: { $ne: req.user._id }}, "-password -admin")
                 .then(data=>{
                     res.json(data);
                 })
-            .catch(err=>next(err));
+                .catch(err=>next(err));
     },
     // get user data from logged user
     getMe: (req, res, next) => {
