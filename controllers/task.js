@@ -1,11 +1,12 @@
 "use strict";
 
+const validate = require("jsonschema").validate;
 const mongoose = require("mongoose");
 
-const Task        = require("../models/task");
-const Tag         = require("../models/tag");
-const error_types = require("./error_types");
-
+const Task          = require("../models/task");
+const Tag           = require("../models/tag");
+const error_types   = require("./error_types");
+const valid_schemas = require("./valid_schemas");
 
 let controller = {
     /**
@@ -18,8 +19,10 @@ let controller = {
      *  -project: ObjectId
      */
     createTask: (req, res, next) => {
-        if(!req.body.desc || !req.body.date || !req.body.start_hour || !req.body.end_hour)
-            next(new error_types.Error400("desc, date, start_hour and end_hour fields are required."));
+        let validation = validate(req.body, valid_schemas.create_task);
+        if(!validation.valid)
+            throw validation.errors;
+
         let document = Task({
             desc: req.body.desc,
             date: req.body.date,
@@ -90,6 +93,11 @@ let controller = {
     updateTask: (req, res, next) => {
         if(req.body.add_tags && req.body.delete_tags)
             next(new error_types.Error400("It's not possible adding and deleting tags in the same request."));
+
+        let validation = validate(req.body, valid_schemas.update_task);
+        if(!validation.valid)
+            throw validation.errors;
+
         let update = {};
         if(req.body.desc) update["desc"] = req.body.desc;
         if(req.body.date) update["date"] = req.body.date;
@@ -113,7 +121,7 @@ let controller = {
                     /*we make intersection between new tags and existing tags, it must be void.
                     Otherwise it means a new tag is already a assigned to the task*/
                     if(data.tags.filter(e => req.body.add_tags.includes(e)).length != 0)
-                        throw(new error_types.Error400("Some tag you are trying to add is already a assigned."));
+                        throw(new error_types.Error400("Some tag you are trying to add is already assigned."));
                 }
                 else
                     return Promise.resolve();

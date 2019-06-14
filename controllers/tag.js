@@ -1,9 +1,11 @@
 "use strict";
 
-const Tag         = require("../models/tag");
-const Task        = require("../models/task");
-const error_types = require("./error_types");
+const validate = require("jsonschema").validate;
 
+const Tag           = require("../models/tag");
+const Task          = require("../models/task");
+const error_types   = require("./error_types");
+const valid_schemas = require("./valid_schemas");
 
 let controller = {
     /**
@@ -11,8 +13,10 @@ let controller = {
      *  -name: String
      */
     createTag: (req, res, next) => {
-        if(!req.body.name)
-            next(new error_types.Error400("name field is required."));
+        let validation = validate(req.body, valid_schemas.create_tag);
+        if(!validation.valid)
+            throw validation.errors;
+
         let document = Tag({
             name: req.body.name,
             user : req.user._id
@@ -115,6 +119,10 @@ let controller = {
         let update = {};
         if(req.body.name) update["name"] = req.body.name;
         if(req.body.tasks) update["tasks"] = req.body.tasks;
+
+        let validation = validate(req.body, valid_schemas.update_tag);
+        if(!validation.valid)
+            throw validation.errors;
 
         Tag.findById(req.params.id)
             .then(data=>{

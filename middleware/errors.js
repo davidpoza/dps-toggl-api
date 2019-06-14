@@ -1,4 +1,5 @@
-const error_types       = require("../controllers/error_types");
+const jsonschema = require("jsonschema");
+const error_types = require("../controllers/error_types");
 let error_middlewares = {
 
     /*
@@ -6,20 +7,62 @@ let error_middlewares = {
     middleware de manejo de errores.
     */
     errorHandler: (error, req, res, next) => {
-        if(error instanceof error_types.InfoError)
-            res.status(200).json({error: {message:error.message}});
-        else if(error instanceof error_types.Error404)
-            res.status(404).json({error: {message:error.message}});
-        else if(error instanceof error_types.Error403)
-            res.status(403).json({error: {message:error.message}});
-        else if(error instanceof error_types.Error401)
-            res.status(401).json({error: {message:error.message}});
-        else if(error instanceof error_types.Error400)
-            res.status(400).json({error: {message:error.message}});
-        else if(error.name == "ValidationError") //de mongoose
-            res.status(200).json({error: {message:error.message}});
-        else if(error.message)
-            res.status(500).json({error: {message:error.message}});
+
+        if (error instanceof error_types.InfoError)
+            res.status(200).json({ error: { message: error.message } });
+        else if (error instanceof error_types.Error404)
+            res.status(404).json({ error: { message: error.message } });
+        else if (error instanceof error_types.Error403)
+            res.status(403).json({ error: { message: error.message } });
+        else if (error instanceof error_types.Error401)
+            res.status(401).json({ error: { message: error.message } });
+        else if (error instanceof error_types.Error400) {
+            res.status(400).json({ error: { message: error.message } });
+        }
+        else if (Array.isArray(error) && error[0] instanceof jsonschema.ValidationError) {
+            let msg_array = [];
+            let msg = "";
+            let regex_property_name = /\.?(\w*)(\[\d\])?$/; //get identificator of property
+            error.forEach(e => {
+                let property = e.property.match(regex_property_name);
+                console.log(property[1]);
+                switch(property[1]){
+                case "instance":
+                    msg = e.message;
+                    break;
+                case "password":
+                    msg = "password should contain at least one digit, one lower case, one upper case, one special character [@!.-_#?=] and length of 8.";
+                    break;
+                case "color":
+                    msg = "color should be a valid hex color, e.g. #d3d3d3";
+                    break;
+                case "project":
+                    msg = "project should be an ObjectId";
+                    break;
+                case "add_tags":
+                    msg = "add_tags should be an array of ObjectId";
+                    break;
+                case "delete_tags":
+                    msg = "delete_tags should be an array of ObjectId";
+                    break;
+                case "add_members":
+                    msg = "add_members should be an array of ObjectId";
+                    break;
+                case "delete_members":
+                    msg = "delete_members should be an array of ObjectId";
+                    break;
+                default:
+                    msg = property[1] + " " + e.message;
+                }
+                if(!msg_array.includes(msg)) //not repeat error messages
+                    msg_array.push(msg);
+            });
+            res.status(400).json({ error: { message: msg_array.join(" | ") } });
+        }
+        else if (error.name == "ValidationError")
+            res.status(200).json({ error: { message: error.message } });
+        else if (error.message)
+            res.status(500).json({ error: { message: error.message } });
         else
             next();
     },
@@ -29,7 +72,7 @@ let error_middlewares = {
     middleware para manejar notFound
     */
     notFoundHandler: (req, res) => {
-        res.status(404).json({error: {message:"endpoint not found"}});
+        res.status(404).json({ error: { message: "endpoint not found" } });
     }
 };
 

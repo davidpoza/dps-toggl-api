@@ -1,7 +1,11 @@
 "use strict";
 
-const User        = require("../models/user");
-const error_types = require("./error_types");
+const validate = require("jsonschema").validate;
+const bcrypt   = require("bcrypt");
+
+const User          = require("../models/user");
+const error_types   = require("./error_types");
+const valid_schemas = require("./valid_schemas");
 
 let controller = {
     /**
@@ -53,17 +57,31 @@ let controller = {
      */
     updateUser: (req, res, next) => {
         let update = {};
+
+        let validation = validate(req.body, valid_schemas.update_user);
+        if(!validation.valid)
+            throw validation.errors;
+
         if(req.body.first_name) update["first_name"] = req.body.first_name;
         if(req.body.last_name) update["last_name"] = req.body.last_name;
-        if(req.body.password && req.body.repeat_password && req.body.password == req.body.repeat_password){
-            let hash = bcrypt.hashSync(req.body.password, parseInt(process.env.BCRYPT_ROUNDS));
-            update["password"] = hash;
+        if(req.body.current_password && req.body.password && req.body.repeat_password && req.body.password == req.body.repeat_password){
+            let new_hash = bcrypt.hashSync(req.body.password, parseInt(process.env.BCRYPT_ROUNDS));
+            update["password"] = new_hash;
         }
-        if(req.body.first_name) update["first_name"] = req.body.first_name;
+        else
+            next(new error_types.Error403("Password not changed."));
 
         if(req.user._id != req.params.id && req.user.admin==false)
             next(new error_types.Error403("You are not allowed to update this user"));
-        User.findOneAndUpdate({ _id: req.params.id }, update, {new:true})
+
+        User.findById(req.params.id)
+            .then(data=>{
+                if(req.body.current_password && !bcrypt.compareSync(req.body.current_password, data.password))
+                    throw new error_types.Error403("Current password is incorrect.");
+                else
+                    return Promise.resolve();
+            })
+            .then(()=>User.findOneAndUpdate({ _id: req.params.id }, update, {new:true}))
             .then(data=>{res.json(data);})
             .catch(err=>next(err));
     },

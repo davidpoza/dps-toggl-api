@@ -1,9 +1,12 @@
 "use strict";
 
-const Project     = require("../models/project");
-const Task        = require("../models/task");
-const User        = require("../models/user");
-const error_types = require("./error_types");
+const validate = require("jsonschema").validate;
+
+const Project       = require("../models/project");
+const Task          = require("../models/task");
+const User          = require("../models/user");
+const error_types   = require("./error_types");
+const valid_schemas = require("./valid_schemas");
 
 let controller = {
     /**
@@ -12,8 +15,10 @@ let controller = {
      *  -color: String
      */
     createProject: (req, res, next) => {
-        if(!req.body.name || !req.body.color)
-            next(new error_types.Error400("name and color fields are required."));
+        let validation = validate(req.body, valid_schemas.create_project);
+        if(!validation.valid)
+            throw validation.errors;
+
         let document = Project({
             name      : req.body.name,
             color     : req.body.color,
@@ -127,6 +132,11 @@ let controller = {
         if(req.body.add_members && req.body.delete_members)
             next(new error_types.Error400("It's not possible adding and deleting members in the same request."));
         let update = {};
+
+        let validation = validate(req.body, valid_schemas.update_project);
+        if(!validation.valid)
+            throw validation.errors;
+
         if(req.body.name) update["name"] = req.body.name;
         if(req.body.color) update["color"] = req.body.color;
         if(req.body.add_members) update["$push"] = { "members": { "$each" : req.body.add_members } };

@@ -1,10 +1,13 @@
 "use strict";
 
-const User        = require("../models/user");
-const bcrypt      = require("bcrypt");
-const passport    = require("passport");
-const jwt         = require("jsonwebtoken");
-const error_types = require("./error_types");
+const validate = require("jsonschema").validate;
+const bcrypt   = require("bcrypt");
+const passport = require("passport");
+const jwt      = require("jsonwebtoken");
+/*  */
+const User          = require("../models/user");
+const error_types   = require("./error_types");
+const valid_schemas = require("./valid_schemas");
 
 let controller = {
     /*
@@ -20,6 +23,10 @@ let controller = {
                 }
                 else { //si no existe el usuario se crea/registra
                     //console.log("creando usuario");
+                    let validation = validate(req.body, valid_schemas.register_user);
+                    if(!validation.valid)
+                        throw validation.errors;
+
                     var hash = bcrypt.hashSync(req.body.password, parseInt(process.env.BCRYPT_ROUNDS));
                     let document = new User({
                         email: req.body.email.toLowerCase(),
@@ -41,13 +48,13 @@ let controller = {
     login: (req, res, next) => {
         // console.log("caso login");
         passport.authenticate("local", { session: false }, (error, user) => {
-            console.log("ejecutando *callback auth* de authenticate para estrategia local");
+            //console.log("ejecutando *callback auth* de authenticate para estrategia local");
 
             //si hubo un error en el callback verify relacionado con la consulta de datos de usuario
             if (error || !user) {
                 next(new error_types.Error404("email or password not correct."));
             }else {
-                console.log("*** comienza generacion token*****");
+                //console.log("*** comienza generacion token*****");
                 const payload = {
                     sub: user._id,
                     exp: Date.now() + parseInt(process.env.JWT_LIFETIME),
@@ -70,7 +77,7 @@ let controller = {
         })(req, res);
     },
     refresh: (req, res, next) => {
-        console.log("*** comienza generacion token*****");
+        //console.log("*** comienza generacion token*****");
         const payload = {
             sub: req.user._id,
             exp: Date.now() + parseInt(process.env.JWT_LIFETIME),
