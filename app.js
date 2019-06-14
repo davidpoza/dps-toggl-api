@@ -8,6 +8,8 @@ const JwtStrategy   = require("passport-jwt").Strategy;
 const LocalStrategy = require("passport-local").Strategy;
 const ExtractJwt    = require("passport-jwt").ExtractJwt;
 const cors          = require("cors");
+const rateLimit     = require("express-rate-limit");
+const helmet        = require("helmet");
 const app           = express();
 
 // cargamos archivo de rutas
@@ -18,7 +20,17 @@ const project_routes = require("./routes/project");
 const tag_routes     = require("./routes/tag");
 const task_routes    = require("./routes/task");
 const errorMdw       = require("./middleware/errors");
-//middlewares
+
+app.use(helmet({
+    frameguard: {
+        action: "deny"
+    },
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc:["'self'"]
+        }
+    }
+}));
 
 passport.use(new LocalStrategy({
     usernameField: "email",
@@ -56,9 +68,20 @@ passport.use(new JwtStrategy(opts, (jwt_payload, done)=>{
         })
         .catch(err=>done(err, null)); //si hay un error lo devolvemos
 }));
-//para que todo lo que llegue por body lo convierta a un objeto json
-app.use(bodyParser.urlencoded({extended:false}));
+
+//middlewares
+
+const apiLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000, //duración de la ventana de tiempo
+    max: 100 //peticiones por up dentro de la ventana de tiempo
+});
+
+app.set("trust proxy", 1); //permitimos que se use el proxy de apache
+app.use("/api/", apiLimiter); // solo aplicamos el limite de peticiones a la api
+
+app.use(bodyParser.urlencoded({extended:false}));//para que todo lo que llegue por body lo convierta a un objeto json
 app.use(bodyParser.json());
+
 app.use(passport.initialize());
 app.use(cors({origin: "*"}));
 
