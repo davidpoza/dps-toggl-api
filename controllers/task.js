@@ -175,6 +175,22 @@ let controller = {
             })
             .catch(err=>next(err));
     },
+
+    getTask: (req, res, next) => {
+        let filter = {};
+        filter["_id"] = req.params.id;
+        if(req.user.admin == false)
+            filter["user"] = req.user._id;
+        Task.find(filter)
+            .then(data=>{
+                if(data)
+                    res.json(data);
+                else
+                    throw new error_types.Error404("Task not found or insufficient permissions.");
+            })
+            .catch(err=>next(err));
+    },
+
     /**
      * only can be fetched the owned tasks. Unless you are admin and can fetch any task.
      * The user, tags and project fields are populated. But user field projection removes
