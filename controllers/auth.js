@@ -8,6 +8,8 @@ const jwt      = require("jsonwebtoken");
 const User          = require("../models/user");
 const error_types   = require("./error_types");
 const valid_schemas = require("./valid_schemas");
+const logger        = require("../controllers/logger");
+
 
 let controller = {
     /*
@@ -15,7 +17,8 @@ let controller = {
     en este caso se realiza contra una base de datos asi que es muy sencillo hacerlo nosotros.
     */
     register: (req, res, next) => {
-        // console.log("caso register");
+        logger.log({message:"intento de registro de usuario", level:"info", req });
+
         User.findOne({ email: req.body.email.toLowerCase() })
             .then(data => { //si la consulta se ejecuta
                 if (data) { //si el usuario existe
@@ -46,7 +49,8 @@ let controller = {
             });
     },
     login: (req, res, next) => {
-        // console.log("caso login");
+        logger.log({message:"Intento de login", level:"info", req });
+
         passport.authenticate("local", { session: false }, (error, user) => {
             //console.log("ejecutando *callback auth* de authenticate para estrategia local");
 
@@ -77,7 +81,7 @@ let controller = {
         })(req, res);
     },
     refresh: (req, res, next) => {
-        //console.log("*** comienza generacion token*****");
+        logger.log({message:"refresh de jwt", level:"info", req });
         const payload = {
             sub: req.user._id,
             exp: Date.now() + parseInt(process.env.JWT_LIFETIME),

@@ -20,4 +20,7 @@ JWT_LIFETIME=86400
 
 # algorithm used in token signing
 JWT_ALGORITHM=HS256
+
+# level of logging
+LOG_LEVEL=info
 ```
