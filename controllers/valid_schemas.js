@@ -3,6 +3,8 @@ const regex_color = /^#[abcdef0-9]{6}$/;
 const regex_password = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!?/@.-_=])[0-9a-zA-Z!?/@.-_=]{8,}$/;
 const regex_date = /\d{4}\/\d{2}\/\d{2}$/;
 const regex_hour = /([01][0-9]|2[0-3]):[0-5][0-9]/;
+const regex_email = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
+
 const validSchemas = {
     register_user: {
         "type": "object",
@@ -15,7 +17,10 @@ const validSchemas = {
                 "required": true
             },
 
-            "email": { "type": "string", "minLength": 6, "maxLength": 40, "required": true }
+            "email": {
+                "type": "string", "minLength": 6, "maxLength": 40,
+                "pattern": regex_email,
+                "required": true }
         },
         "additionalProperties": false
     },

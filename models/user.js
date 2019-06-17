@@ -3,10 +3,8 @@
 const mongoose    = require("mongoose");
 const Schema      = mongoose.Schema;
 
-const utils       = require("../controllers/utils");
-
 const UserSchema = Schema({
-    email     : {type: String, required: true, validate: [utils.validEmail, "Please fill a valid email address"],},
+    email     : {type: String, required: true},
     password  : {type: String, required: true},
     first_name: String,
     last_name : String,

@@ -45,6 +45,9 @@ let error_middlewares = {
                 case "password":
                     msg = "password should contain at least one digit, one lower case, one upper case, one special character [@!.-_#?=] and length of 8.";
                     break;
+                case "email":
+                    msg = "email address should be valid.";
+                    break;
                 case "color":
                     msg = "color should be a valid hex color, e.g. #d3d3d3";
                     break;
