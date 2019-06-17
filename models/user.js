@@ -9,6 +9,7 @@ const UserSchema = Schema({
     first_name: String,
     last_name : String,
     admin     : Boolean,
+    avatar    : String
 });
 
 module.exports = mongoose.model("User", UserSchema, "users");

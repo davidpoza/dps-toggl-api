@@ -20,7 +20,7 @@
   "dependencies": {
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
-    "connect-multiparty": "^2.1.1",
+    "connect-multiparty": "^2.2.0",
     "cors": "^2.8.5",
     "cross-env": "^5.2.0",
     "dotenv": "^8.0.0",
@@ -33,6 +33,7 @@
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
+    "sharp": "^0.22.1",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^3.9.0"
   },

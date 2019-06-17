@@ -26,7 +26,7 @@ let auth_middlewares = {
 
             //inyectamos los datos de usuario en la request
             req.user = user;
-            next();
+            return next();
         })(req, res, next);
     }
 };

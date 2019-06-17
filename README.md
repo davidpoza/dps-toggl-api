@@ -23,4 +23,10 @@ JWT_ALGORITHM=HS256
 
 # level of logging
 LOG_LEVEL=info
+
+# avatar upload dir
+UPLOAD_DIR="uploads"
+
+# avatar size limit in MB
+AVATAR_SIZE_LIMIT=2
 ```

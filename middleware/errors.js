@@ -54,6 +54,9 @@ let error_middlewares = {
                 case "project":
                     msg = "project should be an ObjectId";
                     break;
+                case "avatar":
+                    msg = "avatar must a path";
+                    break;
                 case "add_tags":
                     msg = "add_tags should be an array of ObjectId";
                     break;

@@ -14,7 +14,7 @@ const ProjectSchema = Schema({
 
 ProjectSchema.pre("save", (next)=>{
     this.created_on = new Date();
-    next();
+    return next();
 });
 
 module.exports = mongoose.model("Project", ProjectSchema, "projects");
