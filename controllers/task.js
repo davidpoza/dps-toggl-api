@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 
 const Task          = require("../models/task");
 const Tag           = require("../models/tag");
-const error_types   = require("./error_types");
-const valid_schemas = require("./valid_schemas");
+const error_types   = require("../middleware/error_types");
+const valid_schemas = require("../utils/valid_schemas");
 
 let controller = {
     /**

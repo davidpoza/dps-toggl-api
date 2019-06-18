@@ -1,5 +1,5 @@
 const winston        = require("winston");
-const utils         = require("../controllers/utils");
+const utils         = require("./utils");
 require("winston-daily-rotate-file");
 
 const logger = winston.createLogger({

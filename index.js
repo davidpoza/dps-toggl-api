@@ -3,7 +3,7 @@ require("dotenv").config();
 const mongoogse = require("mongoose");
 
 const app       = require("./app");
-const logger = require("./controllers/logger");
+const logger = require("./utils/logger");
 const port      = process.env.port;
 
 mongoogse.Promise = global.Promise;

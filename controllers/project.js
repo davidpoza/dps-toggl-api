@@ -5,8 +5,8 @@ const validate = require("jsonschema").validate;
 const Project       = require("../models/project");
 const Task          = require("../models/task");
 const User          = require("../models/user");
-const error_types   = require("./error_types");
-const valid_schemas = require("./valid_schemas");
+const error_types   = require("../middleware/error_types");
+const valid_schemas = require("../utils/valid_schemas");
 
 let controller = {
     /**

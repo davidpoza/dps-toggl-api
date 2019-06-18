@@ -4,8 +4,8 @@ const validate = require("jsonschema").validate;
 
 const Tag           = require("../models/tag");
 const Task          = require("../models/task");
-const error_types   = require("./error_types");
-const valid_schemas = require("./valid_schemas");
+const error_types   = require("../middleware/error_types");
+const valid_schemas = require("../utils/valid_schemas");
 
 let controller = {
     /**

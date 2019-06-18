@@ -7,14 +7,16 @@ const fs       = require("fs");
 const sharp    = require("sharp");
 
 const User          = require("../models/user");
-const error_types   = require("./error_types");
-const valid_schemas = require("./valid_schemas");
-const logger        = require("../controllers/logger");
+const error_types   = require("../middleware/error_types");
+const valid_schemas = require("../utils/valid_schemas");
+const logger        = require("../utils/logger");
 
 let controller = {
     /**
      * return all users except current one
      * removed password and admin(not for admins) fields
+     * Parameters via query
+     * - include_me: Boolean
      */
     getUsers: (req, res, next)=>{
         if(req.user.admin){
@@ -23,9 +25,9 @@ let controller = {
                     .then(data=>res.json(data))
                     .catch(err=>next(err));
             else
-            User.find({ _id: { $ne: req.user._id }}, "-password")
-                .then(data=>res.json(data))
-                .catch(err=>next(err));
+                User.find({ _id: { $ne: req.user._id }}, "-password")
+                    .then(data=>res.json(data))
+                    .catch(err=>next(err));
         }
         else{
             if(req.query.include_me)
@@ -34,12 +36,12 @@ let controller = {
                         res.json(data);
                     })
                     .catch(err=>next(err));
-        else
-            User.find({ _id: { $ne: req.user._id }}, "-password -admin")
-                .then(data=>{
-                    res.json(data);
-                })
-                .catch(err=>next(err));
+            else
+                User.find({ _id: { $ne: req.user._id }}, "-password -admin")
+                    .then(data=>{
+                        res.json(data);
+                    })
+                    .catch(err=>next(err));
         }
 
     },

@@ -1,8 +1,8 @@
 const jsonschema = require("jsonschema");
 
-const error_types = require("../controllers/error_types");
-const logger        = require("../controllers/logger");
-const utils         = require("../controllers/utils");
+const error_types = require("./error_types");
+const logger        = require("../utils/logger");
+const utils         = require("../utils/utils");
 
 let error_middlewares = {
 

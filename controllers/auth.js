@@ -6,9 +6,9 @@ const passport = require("passport");
 const jwt      = require("jsonwebtoken");
 /*  */
 const User          = require("../models/user");
-const error_types   = require("./error_types");
-const valid_schemas = require("./valid_schemas");
-const logger        = require("../controllers/logger");
+const error_types   = require("../middleware/error_types");
+const valid_schemas = require("../utils/valid_schemas");
+const logger        = require("../utils/logger");
 
 
 let controller = {

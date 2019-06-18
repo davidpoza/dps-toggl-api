@@ -1,6 +1,6 @@
 "use strict";
 const passport          = require("passport");
-const error_types       = require("../controllers/error_types");
+const error_types       = require("./error_types");
 
 let auth_middlewares = {
 
