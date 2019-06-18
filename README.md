@@ -2,7 +2,7 @@
 
 This is the api for the dps-toggl project
 
-First of all you must create *.env* file with these variables:
+1. First of all you must create *.env* file with these variables:
 ```
 MONGO_URI="mongodb+srv://user:password@server/database"
 
@@ -30,3 +30,5 @@ UPLOAD_DIR="uploads"
 # avatar size limit in MB
 AVATAR_SIZE_LIMIT=2
 ```
+
+2. Also you need create an _uploads_ folder in the root of the project. This folder should contain _resized_ and _temp_ subfolders.

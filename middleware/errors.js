@@ -2,7 +2,6 @@ const jsonschema = require("jsonschema");
 
 const error_types = require("./error_types");
 const logger        = require("../utils/logger");
-const utils         = require("../utils/utils");
 
 let error_middlewares = {
 
@@ -81,6 +80,10 @@ let error_middlewares = {
         else if (error.name == "ValidationError"){
             logger.log({message: error.message, level:"error", status:200, req });
             res.status(200).json({ error: { message: error.message } });
+        }
+        //ignoramos este error de connect-multiparty al no indicar ningun campo,
+        else if (error.message == "stream ended unexpectedly"){
+            res.status(200).json({});
         }
         else if (error.message){
             logger.log({message: error.message, level:"error", status:500, req });

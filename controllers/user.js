@@ -3,13 +3,15 @@
 const validate = require("jsonschema").validate;
 const bcrypt   = require("bcrypt");
 const path     = require("path");
-const fs       = require("fs");
 const sharp    = require("sharp");
+const fs       = require("fs");
 
 const User          = require("../models/user");
 const error_types   = require("../middleware/error_types");
 const valid_schemas = require("../utils/valid_schemas");
 const logger        = require("../utils/logger");
+const utils         = require("../utils/utils");
+
 
 let controller = {
     /**
@@ -83,7 +85,7 @@ let controller = {
 
         let validation = validate(req.body, valid_schemas.update_user);
         if(!validation.valid)
-            throw validation.errors;
+            return next(validation.errors);
 
         if(req.body.first_name) update["first_name"] = req.body.first_name;
         if(req.body.last_name) update["last_name"] = req.body.last_name;
@@ -97,23 +99,41 @@ let controller = {
         if(req.user._id != req.params.id && req.user.admin==false)
             return next(new error_types.Error403("You are not allowed to update this user."));
 
-        if(req.files && req.files.avatar){
-            if(req.files.avatar.length > 1)
-                return next(new error_types.Error500("You can only select one image."));
-            let fullpath = req.files.avatar.path;
-            let filename = path.basename(fullpath);
-            let ext = filename.split(".");
-            if(ext[1] != "jpg" && ext[1] != "jpeg"){
-                return next(new error_types.Error500("Image should be jpg format."));
-            }
-            update["avatar"] = filename;
-            sharp(fullpath)
-                .resize(600)
-                .toFile(path.join(process.env.UPLOAD_DIR, "resized", filename))
-                .catch(()=>next(new error_types.Error500("Error on resize image.")));
-        }
+        let imageUpload = new Promise((resolve, reject)=>{
+            if(req.files && req.files.avatar){
+                if(req.files.avatar.length > 1)
+                    reject(new error_types.Error500("You can only select one image."));
+                let fullpath = req.files.avatar.path;
+                let filename = path.basename(fullpath);
+                let destpath = path.join(process.env.UPLOAD_DIR, "resized", filename);
 
-        User.findById(req.params.id)
+                if(req.files.avatar.type != "image/jpeg"){
+                    reject(new error_types.Error500("Image should be jpg format."));
+                }
+                sharp(fullpath)
+                    .resize(600)
+                    .toFile(destpath, (err) => {
+                        if(err)
+                            reject(new error_types.Error500("Error on resize image."));
+                        else{
+                            update["avatar"] = filename;
+                            fs.copyFile(path.join(process.env.UPLOAD_DIR, "temp", filename),
+                                path.join(process.env.UPLOAD_DIR, filename), ()=>{
+                                    reject(new error_types.Error500("Error uploading image."));
+                                });
+                            utils.deleteAllFiles(path.join(process.env.UPLOAD_DIR, "temp"), ()=>{
+                                logger.log({message: "error on delete temp images", level:"error", req });
+                            });
+                            resolve();
+                        }
+                    });
+            }
+            else
+                resolve();
+        });
+
+        imageUpload
+            .then(()=>User.findById(req.params.id))
             .then(data=>{
                 if(update["avatar"]){
                     old_avatar = data.avatar;
@@ -123,19 +143,33 @@ let controller = {
                 else
                     return Promise.resolve();
             })
-            .then(()=>User.findOneAndUpdate({ _id: req.params.id }, update, {new:true}))
+            .then(()=>User.findOneAndUpdate({ _id: req.params.id }, update, {select: "-password", new:true}))
             .then(data=>{
                 if(update["avatar"]){
                     //si todo ha ido correctamente borramos el avatar anterior
-                    let filepath = path.join(process.env.UPLOAD_DIR, old_avatar);
-                    fs.unlink(filepath, (err)=>{
-                        if(err)
-                            logger.log({message: "error on delete image "+old_avatar, level:"error", req });
+                    let filePath = path.join(process.env.UPLOAD_DIR, old_avatar);
+                    let resizedFilepath = path.join(process.env.UPLOAD_DIR, "resized", old_avatar);
+                    utils.deleteFiles([filePath, resizedFilepath], ()=>{
+                        logger.log({message: "error on delete images "+old_avatar, level:"error", req });
                     });
                 }
                 res.json(data);
             })
-            .catch(err=>next(err));
+            .catch(err=>{
+                let fileArray = [];
+                if (typeof update["avatar"] === "string"){
+                    fileArray.push(path.join(process.env.UPLOAD_DIR, "resized", update["avatar"]));
+                    fileArray.push(path.join(process.env.UPLOAD_DIR, update["avatar"]));
+                }
+                let tempFolder = path.join(process.env.UPLOAD_DIR, "temp");
+                utils.deleteFiles(fileArray, ()=>{
+                    logger.log({message: "error on delete images", level:"error", req });
+                });
+                utils.deleteAllFiles(tempFolder, ()=>{
+                    logger.log({message: "error on delete temp images", level:"error", req });
+                });
+                next(err);
+            });
     },
 
     /**

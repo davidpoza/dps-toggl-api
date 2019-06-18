@@ -1,9 +1,10 @@
 "use strict";
-const avatar_size_limit   = process.env.AVATAR_SIZE_LIMIT ? parseInt(process.env.AVATAR_SIZE_LIMIT)*1048576 : 2097152;          //en bytes
+const avatar_size_limit   = process.env.AVATAR_SIZE_LIMIT ? parseInt(process.env.AVATAR_SIZE_LIMIT)*1048576 : 2097152; //en bytes
 const express             = require("express");
 const router              = express.Router();
 const multipart           = require("connect-multiparty");
-const multipartMiddleware = multipart({ uploadDir: "./uploads", maxFilesSize : avatar_size_limit });
+const path                = require("path");
+const multipartMiddleware = multipart({ uploadDir: path.join(process.env.UPLOAD_DIR, "temp"), maxFilesSize : avatar_size_limit });
 
 
 const md_auth        = require("../middleware/auth");
