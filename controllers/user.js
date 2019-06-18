@@ -111,16 +111,12 @@ let controller = {
                     reject(new error_types.Error500("Image should be jpg format."));
                 }
                 sharp(fullpath)
-                    .resize(600)
+                    .resize(600, 600)
                     .toFile(destpath, (err) => {
                         if(err)
                             reject(new error_types.Error500("Error on resize image."));
                         else{
                             update["avatar"] = filename;
-                            fs.copyFile(path.join(process.env.UPLOAD_DIR, "temp", filename),
-                                path.join(process.env.UPLOAD_DIR, filename), ()=>{
-                                    reject(new error_types.Error500("Error uploading image."));
-                                });
                             utils.deleteAllFiles(path.join(process.env.UPLOAD_DIR, "temp"), ()=>{
                                 logger.log({message: "error on delete temp images", level:"error", req });
                             });
@@ -147,9 +143,8 @@ let controller = {
             .then(data=>{
                 if(update["avatar"]){
                     //si todo ha ido correctamente borramos el avatar anterior
-                    let filePath = path.join(process.env.UPLOAD_DIR, old_avatar);
                     let resizedFilepath = path.join(process.env.UPLOAD_DIR, "resized", old_avatar);
-                    utils.deleteFiles([filePath, resizedFilepath], ()=>{
+                    utils.deleteFiles([resizedFilepath], ()=>{
                         logger.log({message: "error on delete images "+old_avatar, level:"error", req });
                     });
                 }
@@ -159,7 +154,6 @@ let controller = {
                 let fileArray = [];
                 if (typeof update["avatar"] === "string"){
                     fileArray.push(path.join(process.env.UPLOAD_DIR, "resized", update["avatar"]));
-                    fileArray.push(path.join(process.env.UPLOAD_DIR, update["avatar"]));
                 }
                 let tempFolder = path.join(process.env.UPLOAD_DIR, "temp");
                 utils.deleteFiles(fileArray, ()=>{
