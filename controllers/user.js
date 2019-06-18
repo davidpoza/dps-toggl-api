@@ -166,23 +166,24 @@ let controller = {
             });
     },
 
+    /**
+     * get image avatar
+     *
+     * Parameters via params:
+     *  -image (filename). If not is provided then try to show the authenticated user avatar
+     *
+     */
     getAvatarImage: (req, res, next) => {
-        if(!req.user)
-            return next(new error_types.Error401("You should be logged in."));
-        User.findById(req.user._id)
-            .then(data=>{
-                if(data.avatar){
-                    fs.stat(path.join(process.env.UPLOAD_DIR, "resized", data.avatar), (err, stats) => {
+        if(req.params.image){
+            fs.stat(path.join(process.env.UPLOAD_DIR, "resized", req.params.image), (err, stats) => {
                         if(err)
                             return res.sendFile(path.resolve(path.join("public", "images", "default_avatar.jpg")));
                         else if(stats)
-                            return res.sendFile(path.resolve(path.join("uploads", "resized", data.avatar)));
+                    return res.sendFile(path.resolve(path.join("uploads", "resized", req.params.image)));
                     });
                 }
                 else
-                    return res.sendFile(path.resolve(path.join("public", "images", "default_avatar.jpg")));
-            })
-            .catch(err=>next(err));
+            return next(new error_types.Error404("You must provide and filename or Authorization header"));
     },
 
     /**
