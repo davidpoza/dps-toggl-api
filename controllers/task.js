@@ -199,6 +199,8 @@ let controller = {
      * Parameters via query:
      * -date: "2019-06-10" (if date is not specified then fetchs all tasks grouped by dates)
      * -user_id: ObjectId (Only for admins)
+     * -date_start: "2019-06-10" (including the date)
+     * -date_end: "2019-06-12" (including the date)
      *
      */
     getTasks: (req, res, next) => {
@@ -207,6 +209,12 @@ let controller = {
             filter["user"] = req.user._id;
         else if(req.query.user_id)
             filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
+
+        if(req.query.date_start)
+            filter["date"] = { "$gte": new Date(req.query.date_start) };
+
+        if(req.query.date_end)
+            filter["date"] = Object.assign(filter["date"]?filter["date"]:{}, { "$lte": new Date(req.query.date_end) });
 
         if(req.query.date){
             filter["date"] = req.query.date;
@@ -276,6 +284,7 @@ let controller = {
                     }
                 }
             ])
+                .sort("date")
                 .then(data=>{
                     if(data)
                         res.json(data);
