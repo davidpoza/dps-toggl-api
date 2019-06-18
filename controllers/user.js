@@ -166,6 +166,25 @@ let controller = {
             });
     },
 
+    getAvatarImage: (req, res, next) => {
+        if(!req.user)
+            return next(new error_types.Error401("You should be logged in."));
+        User.findById(req.user._id)
+            .then(data=>{
+                if(data.avatar){
+                    fs.stat(path.join(process.env.UPLOAD_DIR, "resized", data.avatar), (err, stats) => {
+                        if(err)
+                            return res.sendFile(path.resolve(path.join("public", "images", "default_avatar.jpg")));
+                        else if(stats)
+                            return res.sendFile(path.resolve(path.join("uploads", "resized", data.avatar)));
+                    });
+                }
+                else
+                    return res.sendFile(path.resolve(path.join("public", "images", "default_avatar.jpg")));
+            })
+            .catch(err=>next(err));
+    },
+
     /**
      * The only admins can delete users
      * When delete a tag, tags array from all affected tasks are updated
