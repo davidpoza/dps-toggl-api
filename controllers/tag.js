@@ -23,7 +23,7 @@ let controller = {
         });
         document.save()
             .then((data)=>{
-                res.json(data);
+                res.json({data:data});
             })
             .catch(err=>next(err));
     },
@@ -75,7 +75,7 @@ let controller = {
         Tag.find(filter)
             .then(data=>{
                 if(data)
-                    res.json(data);
+                    res.json({data:data});
                 else
                     throw new error_types.Error404("There are no tags");
             })
@@ -98,7 +98,7 @@ let controller = {
         Tag.findOne(filter)
             .then(data=>{
                 if(data)
-                    res.json(data);
+                    res.json({data:data});
                 else
                     throw new error_types.Error404("There are no tags");
             })

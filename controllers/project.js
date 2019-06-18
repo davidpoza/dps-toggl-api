@@ -28,7 +28,7 @@ let controller = {
         });
         document.save()
             .then((data)=>{
-                res.json(data);
+                res.json({data:data});
             })
             .catch(err=>next(err));
     },
@@ -82,7 +82,7 @@ let controller = {
             .then(data=>{
                 if(data){
                     //data = data.map(e=>e.transform());
-                    res.json(data);
+                    res.json({data:data});
                 }
                 else
                     throw new error_types.Error404("There are no projects");
@@ -107,7 +107,7 @@ let controller = {
             .populate({path: "owner", select: "-password -admin"}).exec()
             .then(data=>{
                 if(data)
-                    res.json(data);
+                    res.json({data:data});
                 else
                     throw new error_types.Error404("There are no projects");
             })

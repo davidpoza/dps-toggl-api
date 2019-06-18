@@ -34,7 +34,7 @@ let controller = {
         });
         document.save()
             .then((data)=>{
-                res.json(data);
+                res.json({data:data});
             })
             .catch(err=>next(err));
     },
@@ -184,7 +184,7 @@ let controller = {
         Task.find(filter)
             .then(data=>{
                 if(data)
-                    res.json(data);
+                    res.json({data:data});
                 else
                     throw new error_types.Error404("Task not found or insufficient permissions.");
             })
@@ -221,7 +221,7 @@ let controller = {
             Task.find(filter).populate({path:"user", select: "-password -admin"}).populate("tags").populate("project").exec()
                 .then(data=>{
                     if(data)
-                        res.json(data);
+                        res.json({data:data});
                     else
                         throw new error_types.Error404("There are no tasks");
                 })
@@ -287,7 +287,7 @@ let controller = {
                 .sort("date")
                 .then(data=>{
                     if(data)
-                        res.json(data);
+                        res.json({data:data});
                     else
                         throw new error_types.Error404("There are no tasks");
                 })

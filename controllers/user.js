@@ -24,24 +24,24 @@ let controller = {
         if(req.user.admin){
             if(req.query.include_me)
                 User.find({}, "-password")
-                    .then(data=>res.json(data))
+                    .then(data=>res.json({data:data}))
                     .catch(err=>next(err));
             else
                 User.find({ _id: { $ne: req.user._id }}, "-password")
-                    .then(data=>res.json(data))
+                    .then(data=>res.json({data:data}))
                     .catch(err=>next(err));
         }
         else{
             if(req.query.include_me)
                 User.find({ }, "-password -admin")
                     .then(data=>{
-                        res.json(data);
+                        res.json({data:data});
                     })
                     .catch(err=>next(err));
             else
                 User.find({ _id: { $ne: req.user._id }}, "-password -admin")
                     .then(data=>{
-                        res.json(data);
+                        res.json({data:data});
                     })
                     .catch(err=>next(err));
         }
@@ -50,7 +50,7 @@ let controller = {
     // get user data from logged user
     getMe: (req, res, next) => {
         User.findOne({ _id: req.user._id })
-            .then(data=>{res.json(data);})
+            .then(data=>{res.json({data:data});})
             .catch(err=>next(err));
     },
 
@@ -62,7 +62,7 @@ let controller = {
      */
     getUser: (req, res, next) => {
         User.findOne({ _id: req.params.id }, "-password -admin")
-            .then(data=>{res.json(data);})
+            .then(data=>{res.json({data:data});})
             .catch(err=>next(err));
     },
 
@@ -148,7 +148,7 @@ let controller = {
                         logger.log({message: "error on delete images "+old_avatar, level:"error", req });
                     });
                 }
-                res.json(data);
+                res.json({data:data});
             })
             .catch(err=>{
                 let fileArray = [];
@@ -176,13 +176,13 @@ let controller = {
     getAvatarImage: (req, res, next) => {
         if(req.params.image){
             fs.stat(path.join(process.env.UPLOAD_DIR, "resized", req.params.image), (err, stats) => {
-                        if(err)
-                            return res.sendFile(path.resolve(path.join("public", "images", "default_avatar.jpg")));
-                        else if(stats)
+                if(err)
+                    return res.sendFile(path.resolve(path.join("public", "images", "default_avatar.jpg")));
+                else if(stats)
                     return res.sendFile(path.resolve(path.join("uploads", "resized", req.params.image)));
-                    });
-                }
-                else
+            });
+        }
+        else
             return next(new error_types.Error404("You must provide and filename or Authorization header"));
     },
 
