@@ -280,6 +280,7 @@ let controller = {
                             desc: "$desc",
                             start_hour: "$start_hour",
                             end_hour: "$end_hour",
+                            date: "$date",
                             user: {
                                 _id: "$user._id",
                                 email:"$user.email",
