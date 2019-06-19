@@ -82,7 +82,7 @@ const validSchemas = {
             "start_hour": { "type": "string", pattern: regex_hour, "required": true},
             "end_hour": { "type": "string", pattern: regex_hour, "required": true},
             "tags": { "type": "array", "items": { "type": "string", "pattern": regex_objectId }},
-            "project": { "type": "string", "pattern": regex_objectId },
+            "project": { "anyOf": [{"type": "null"},{"type": "string", "pattern": regex_objectId}] },
             "user": { "type": "string", "pattern": regex_objectId }
         },
         "additionalProperties": false
@@ -96,7 +96,7 @@ const validSchemas = {
             "end_hour": { "type": "string", pattern: regex_hour},
             "add_tags": { "type": "array", "items": { "type": "string", "pattern": regex_objectId }},
             "delete_tags": { "type": "array", "items": { "type": "string", "pattern": regex_objectId }},
-            "project": { "type": "string", "pattern": regex_objectId },
+            "project": { "anyOf": [{"type": "null"},{"type": "string", "pattern": regex_objectId}] },
         },
         "additionalProperties": false
     },
