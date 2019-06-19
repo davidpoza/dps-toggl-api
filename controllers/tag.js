@@ -72,7 +72,7 @@ let controller = {
         else if(req.query.user_id)
             filter["user"] = req.query.user_id;
 
-        Tag.find(filter)
+        Tag.find(filter, "-user -tasks")
             .then(data=>{
                 if(data)
                     res.json({data:data});
