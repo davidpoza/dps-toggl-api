@@ -218,7 +218,7 @@ let controller = {
 
         if(req.query.date){
             filter["date"] = req.query.date;
-            Task.find(filter).populate({path:"user", select: "-password -admin"}).populate("tags").populate("project").exec()
+            Task.find(filter).populate({path:"user", select: "-password -admin"}).populate({path:"tags", select: "-user -tasks"}).populate("project").exec()
                 .then(data=>{
                     if(data)
                         res.json({data:data});
@@ -241,6 +241,14 @@ let controller = {
                     }
                 },
                 {
+                    "$lookup": {
+                        from: "tags",
+                        localField: "tags",
+                        foreignField: "_id",
+                        as: "tags"
+                    }
+                },
+                {
                     "$project": {
                         _id: "$_id",
                         date: "$date",
@@ -248,7 +256,16 @@ let controller = {
                         start_hour: "$start_hour",
                         end_hour: "$end_hour",
                         project: "$project",
-                        tags: "$tags",
+                        tags: {
+                            "$map": {
+                                "input": "$tags",
+                                "as": "tagsm",
+                                "in": {
+                                    _id: "$$tagsm._id",
+                                    name: "$$tagsm.name"
+                                }
+                            }
+                        },
                         user: { "$arrayElemAt": [ "$user", 0 ] },
                     }
                 },
