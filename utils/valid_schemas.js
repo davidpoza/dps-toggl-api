@@ -1,7 +1,7 @@
 const regex_objectId = /^[a-f\d]{24}$/i;
 const regex_color = /^#[abcdef0-9]{6}$/;
 const regex_password = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!?/@.-_=])[0-9a-zA-Z!?/@.-_=]{8,}$/;
-const regex_date = /\d{4}\/\d{2}\/\d{2}$/;
+const regex_date = /\d{4}-\d{2}-\d{2}$/;
 const regex_hour = /([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]/; //formato HH:MM:SS
 const regex_email = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
 
@@ -83,6 +83,7 @@ const validSchemas = {
             "end_hour": { "type": "string", pattern: regex_hour, "required": true},
             "tags": { "type": "array", "items": { "type": "string", "pattern": regex_objectId }},
             "project": { "type": "string", "pattern": regex_objectId },
+            "user": { "type": "string", "pattern": regex_objectId }
         },
         "additionalProperties": false
     },
