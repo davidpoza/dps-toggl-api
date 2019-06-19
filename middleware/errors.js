@@ -12,23 +12,23 @@ let error_middlewares = {
     errorHandler: (error, req, res, next) => {
 
         if (error instanceof error_types.InfoError){
-            logger.log({message: error.message, level:"error", status:200, req });
+            logger.log({message: error.message, stack: error.stack, level:"error", status:200, req });
             res.status(200).json({ error: { message: error.message } });
         }
         else if (error instanceof error_types.Error404){
-            logger.log({message: error.message, level:"error", status:404, req });
+            logger.log({message: error.message, stack: error.stack, level:"error", status:404, req });
             res.status(404).json({ error: { message: error.message } });
         }
         else if (error instanceof error_types.Error403){
-            logger.log({message: error.message, level:"error", status:403, req });
+            logger.log({message: error.message, stack: error.stack, level:"error", status:403, req });
             res.status(403).json({ error: { message: error.message } });
         }
         else if (error instanceof error_types.Error401){
             res.status(401).json({ error: { message: error.message } });
-            logger.log({message: error.message, level:"error", status:401, req });
+            logger.log({message: error.message, stack: error.stack, level:"error", status:401, req });
         }
         else if (error instanceof error_types.Error400) {
-            logger.log({message: error.message, level:"error", status:400, req });
+            logger.log({message: error.message, stack: error.stack, level:"error", status:400, req });
             res.status(400).json({ error: { message: error.message } });
         }
         else if (Array.isArray(error) && error[0] instanceof jsonschema.ValidationError) {
@@ -74,11 +74,10 @@ let error_middlewares = {
                 if(!msg_array.includes(msg)) //not repeat error messages
                     msg_array.push(msg);
             });
-            logger.log({message: msg_array.join(" | "), level:"error", status:400, req });
+            logger.log({message: msg_array.join(" | "), stack: error.stack, level:"error", status:400, req });
             res.status(400).json({ error: { message: msg_array.join(" | ") } });
         }
         else if (error.name == "ValidationError"){
-            logger.log({message: error.message, level:"error", status:200, req });
             res.status(200).json({ error: { message: error.message } });
         }
         //ignoramos este error de connect-multiparty al no indicar ningun campo,
@@ -86,7 +85,7 @@ let error_middlewares = {
             res.status(200).json({});
         }
         else if (error.message){
-            logger.log({message: error.message, level:"error", status:500, req });
+            logger.log({message: error.message, stack: error.stack, level:"error", status:500, req });
             res.status(500).json({ error: { message: error.message } });
         }
         else

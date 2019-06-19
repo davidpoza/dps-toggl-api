@@ -24,8 +24,10 @@ const logger = winston.createLogger({
             ret.status = info.status || "";
             ret.level = info.level || "";
             ret.method = info.req? info.req.method : "";
+            ret.stack = info.stack? info.stack : "";
+            ret.path = info.req? info.req.originalUrl : "";
 
-            return (`[${ret.timestamp}] ${ret.ip} ${ret.level} ${ret.method}:${ret.status} - ${ret.message}`);
+            return (`[${ret.timestamp}] ${ret.ip} {${ret.level}} ${ret.method}//${ret.status}//${ret.path} - ${ret.message} ${ret.stack}`);
         })
     ),
     level: process.env.LOG_LEVEL || "info",
