@@ -68,6 +68,12 @@ let error_middlewares = {
                 case "delete_members":
                     msg = "delete_members should be an array of ObjectId";
                     break;
+                case "start_hour":
+                    msg = "start_hout should match format HH:MM:SS";
+                    break;
+                case "end_hour":
+                    msg = "end_hour should match format HH:MM:SS";
+                    break;
                 default:
                     msg = property[1] + " " + e.message;
                 }
