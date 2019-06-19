@@ -65,10 +65,12 @@ let controller = {
     },
 
     /**
-     * Only can be fetched the owned projects or those you are member of. Unless you are admin and can fetch any project
+     * Only can be fetched the owned projects or those you are member of.
+     * Unless you are admin and can fetch any project using all=true parameter.
+     *
      * Parameters via query:
      *  -user_id: ObjectId (only for admins)
-     *
+     *  -all: Boolean (only for admins)
      */
     getProjects: (req, res, next) => {
         let filter = {};
@@ -77,6 +79,8 @@ let controller = {
         }
         else if(req.query.user_id)
             filter["owner"] = req.query.user_id;
+        else if(!req.query.all)
+            filter["$or"] = [{owner:req.user._id}, {members:req.user._id}];
 
         Project.find(filter).populate("tasks").exec()
             .then(data=>{
