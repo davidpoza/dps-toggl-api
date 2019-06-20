@@ -130,7 +130,9 @@ let controller = {
      *  -name: String
      *  -color: String
      *  -add_members: [ObjectId, ObjectId, ...]
-     *  -delete_members: [ObjectId, ObjectId, ...]     *
+     *  -delete_members: [ObjectId, ObjectId, ...]
+     *  -add_tasks: [ObjectId, ObjectId, ...]
+     *  -delete_tasks: [ObjectId, ObjectId, ...]
      */
     updateProject: (req, res, next) => {
         if(req.body.add_members && req.body.delete_members)
@@ -145,6 +147,8 @@ let controller = {
         if(req.body.color) update["color"] = req.body.color;
         if(req.body.add_members) update["$push"] = { "members": { "$each" : req.body.add_members } };
         if(req.body.delete_members) update["$pullAll"] = { "members": req.body.delete_members };
+        if(req.body.add_tasks) update["$push"] = { "tasks": { "$each" : req.body.add_tasks } };
+        if(req.body.delete_tasks) update["$pullAll"] = { "tasks": req.body.delete_tasks };
         Project.findById(req.params.id).lean().exec()
             .then(data=>{
                 if(!data)

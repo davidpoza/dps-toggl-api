@@ -55,7 +55,9 @@ const validSchemas = {
             "name": { "type": "string", "minLength": 1, "maxLength": 40 },
             "color": { "type": "string", "pattern": regex_color },
             "add_members": { "type": "array", "items": { "type": "string", "pattern": regex_objectId } },
-            "delete_members": { "type": "array", "items": { "type": "string", "pattern": regex_objectId } }
+            "delete_members": { "type": "array", "items": { "type": "string", "pattern": regex_objectId } },
+            "add_tasks": { "type": "array", "items": { "type": "string", "pattern": regex_objectId } },
+            "delete_tasks": { "type": "array", "items": { "type": "string", "pattern": regex_objectId } }
         },
         "additionalProperties": false
     },
