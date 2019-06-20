@@ -73,7 +73,7 @@ passport.use(new JwtStrategy(opts, (jwt_payload, done)=>{
 
 const globalApiLimiter = rateLimit({
     windowMs: 5 * 60 * 1000, //duración de la ventana de tiempo
-    max: 100 //peticiones por up dentro de la ventana de tiempo
+    max: 200 //peticiones por up dentro de la ventana de tiempo
 });
 
 const authApiLimiter = rateLimit({
