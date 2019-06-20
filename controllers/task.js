@@ -7,6 +7,7 @@ const Task          = require("../models/task");
 const Tag           = require("../models/tag");
 const error_types   = require("../middleware/error_types");
 const valid_schemas = require("../utils/valid_schemas");
+const utils         = require("../utils/utils");
 
 let controller = {
     /**
@@ -298,14 +299,23 @@ let controller = {
                         _id: 0,
                         date: "$_id.date",
                         tasks: "$tasks",
-                        task_count: 1
+                        task_count: 1,
+                        time: "$time"
                     }
                 }
             ])
                 .sort("date")
                 .then(data=>{
-                    if(data)
+                    if(data){
+                        data.map(d=>{
+                            d.time = d.tasks.reduce((prev,curr)=>{
+                                curr = utils.diffHoursBetHours(curr?curr.start_hour:"00:00:00", curr?curr.end_hour:"00:00:00");
+                                return(prev+curr);
+                            },0);
+                            return d;
+                        });
                         res.json({data:data});
+                    }
                     else
                         throw new error_types.Error404("There are no tasks");
                 })
