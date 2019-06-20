@@ -181,7 +181,7 @@ let controller = {
         filter["_id"] = req.params.id;
         if(req.user.admin == false)
             filter["user"] = req.user._id;
-        Task.find(filter)
+        Task.findOne(filter)
             .then(data=>{
                 if(data)
                     res.json({data:data});
