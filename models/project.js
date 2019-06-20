@@ -12,7 +12,7 @@ const ProjectSchema = Schema({
     tasks  : [{ type: Schema.ObjectId, ref:"Task"}]
 });
 
-ProjectSchema.pre("save", (next)=>{
+ProjectSchema.pre("save", function(next){
     this.created_on = new Date();
     return next();
 });
