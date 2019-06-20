@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 
 const Task          = require("../models/task");
 const Tag           = require("../models/tag");
+const Project       = require("../models/project");
 const error_types   = require("../middleware/error_types");
 const valid_schemas = require("../utils/valid_schemas");
 const utils         = require("../utils/utils");
@@ -74,6 +75,38 @@ let controller = {
             .catch(err=>next(err));
     },
 
+    /* Function to keep consistency on relationshipo project:tasks (1:n)
+    *  It adds the updated task to the new project tasks array.
+    *  And it removes from the old project tasks array.
+    *  - case 1: old_project != undefined y new_project != undefined: the task has been changed from
+    *            an old project to a new project
+    *  - case 2: new_project == undefined: the task project is not modified.
+    *  - case 3: old_project == undefined: the task didn't have any project assigned
+    *            and now we assigned one to it.
+    */
+    keepProjectConsistency: (task_id, old_project, new_project)=>{
+        return new Promise((resolve, reject) => {
+            if(new_project == undefined)
+                resolve(); // si no modificamos el campo project, continuamos
+
+            //quitamos tarea del anterior proyecto
+            let update_remove_from_project = {};
+            if(old_project != undefined)
+                update_remove_from_project["$pull"] = { "tasks": task_id };
+            let update_add_to_project = {};
+            if(new_project != undefined)
+                update_add_to_project["$push"] = { "tasks": task_id };
+
+            let p_remove = old_project != undefined ? Project.findByIdAndUpdate({_id: old_project}, update_remove_from_project, {new: true}) : Promise.resolve();
+            let p_add =  Project.findByIdAndUpdate({_id:new_project}, update_add_to_project, {new: true});
+
+            Promise.all([p_remove,p_add])
+                .then(()=>resolve())
+                .catch((err)=>reject(err));
+        });
+    },
+
+
     /**
      * only can be updated the owned tasks. Unless you are admin and can modify any task.
      * First of all we check that new tags aren't already assigned to the task.
@@ -104,9 +137,11 @@ let controller = {
         if(req.body.date) update["date"] = req.body.date;
         if(req.body.start_hour) update["start_hour"] = req.body.start_hour;
         if(req.body.end_hour) update["end_hour"] = req.body.end_hour;
-        if(req.body.project != undefined &&  req.body.project != -1) update["project"] = req.body.project;
+        if(req.body.project != undefined &&  req.body.project != -1)
+            update["project"] = req.body.project;
         if(req.body.add_tags) update["$push"] = { "tags": { "$each" : req.body.add_tags } };
         if(req.body.delete_tags) update["$pullAll"] = { "tags": req.body.delete_tags };
+
         Task.findById(req.params.id).lean().exec()
             .then(data=>{
                 if(!data)
@@ -120,13 +155,14 @@ let controller = {
                         return e;
                     });
                     /*we make intersection between new tags and existing tags, it must be void.
-                    Otherwise it means a new tag is already a assigned to the task*/
+                Otherwise it means a new tag is already a assigned to the task*/
                     if(data.tags.filter(e => req.body.add_tags.includes(e)).length != 0)
                         throw(new error_types.Error400("Some tag you are trying to add is already assigned."));
                 }
                 else
-                    return Promise.resolve();
+                    return Promise.resolve(data);
             })
+            .then((data)=>controller.keepProjectConsistency(req.params.id, data.project?data.project._id.toString():undefined, req.body.project))
             .then(()=>{
                 if(req.body.add_tags){
                     return Tag.countDocuments({_id: {"$in": req.body.add_tags}})
