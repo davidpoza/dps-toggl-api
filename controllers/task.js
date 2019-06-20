@@ -104,7 +104,7 @@ let controller = {
         if(req.body.date) update["date"] = req.body.date;
         if(req.body.start_hour) update["start_hour"] = req.body.start_hour;
         if(req.body.end_hour) update["end_hour"] = req.body.end_hour;
-        if(req.body.project) update["project"] = req.body.project;
+        if(req.body.project != undefined &&  req.body.project != -1) update["project"] = req.body.project;
         if(req.body.add_tags) update["$push"] = { "tags": { "$each" : req.body.add_tags } };
         if(req.body.delete_tags) update["$pullAll"] = { "tags": req.body.delete_tags };
         Task.findById(req.params.id).lean().exec()
