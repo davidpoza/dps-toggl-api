@@ -208,7 +208,8 @@ let controller = {
                 return Promise.resolve();
             })
             .then(()=>{
-                return Task.findByIdAndUpdate(req.params.id, update, {new:true});
+                return Task.findByIdAndUpdate(req.params.id, update, {new:true})
+                    .populate({path: "tags", select: "-__v -tasks -user"});
             })
             .then((data)=>{
                 res.json({data: data});
@@ -222,6 +223,7 @@ let controller = {
         if(req.user.admin == false)
             filter["user"] = req.user._id;
         Task.findOne(filter)
+            .populate({path: "tags", select: "-__v -tasks -user"})
             .then(data=>{
                 if(data)
                     res.json({data:data});
