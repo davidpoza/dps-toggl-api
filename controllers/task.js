@@ -78,11 +78,12 @@ let controller = {
     /* Function to keep consistency on relationshipo project:tasks (1:n)
     *  It adds the updated task to the new project tasks array.
     *  And it removes from the old project tasks array.
-    *  - case 1: old_project != undefined y new_project != undefined: the task has been changed from
+    *  - case 1: new_project == undefined: the task project is not modified.
+    *  - case 2: old_project != null y new_project != null: the task has been changed from
     *            an old project to a new project
-    *  - case 2: new_project == undefined: the task project is not modified.
-    *  - case 3: old_project == undefined: the task didn't have any project assigned
+    *  - case 3: old_project == null and new_project != null: the task didn't have any project assigned
     *            and now we assigned one to it.
+    *  - case 4: old_project != null and new_project == null: we remove the project of the task
     */
     keepProjectConsistency: (task_id, old_project, new_project)=>{
         return new Promise((resolve, reject) => {
@@ -91,13 +92,13 @@ let controller = {
 
             //quitamos tarea del anterior proyecto
             let update_remove_from_project = {};
-            if(old_project != undefined)
+            if(old_project != null)
                 update_remove_from_project["$pull"] = { "tasks": task_id };
             let update_add_to_project = {};
-            if(new_project != undefined)
+            if(new_project != null)
                 update_add_to_project["$push"] = { "tasks": task_id };
 
-            let p_remove = old_project != undefined ? Project.findByIdAndUpdate({_id: old_project}, update_remove_from_project, {new: true}) : Promise.resolve();
+            let p_remove = old_project != null ? Project.findByIdAndUpdate({_id: old_project}, update_remove_from_project, {new: true}) : Promise.resolve();
             let p_add =  Project.findByIdAndUpdate({_id:new_project}, update_add_to_project, {new: true});
 
             Promise.all([p_remove,p_add])
@@ -137,7 +138,7 @@ let controller = {
         if(req.body.date) update["date"] = req.body.date;
         if(req.body.start_hour) update["start_hour"] = req.body.start_hour;
         if(req.body.end_hour) update["end_hour"] = req.body.end_hour;
-        if(req.body.project != undefined &&  req.body.project != -1)
+        if(req.body.project != -1 && req.body.project !== undefined)
             update["project"] = req.body.project;
         if(req.body.add_tags) update["$push"] = { "tags": { "$each" : req.body.add_tags } };
         if(req.body.delete_tags) update["$pullAll"] = { "tags": req.body.delete_tags };
@@ -162,7 +163,9 @@ let controller = {
                 else
                     return Promise.resolve(data);
             })
-            .then((data)=>controller.keepProjectConsistency(req.params.id, data.project?data.project._id.toString():undefined, req.body.project))
+            .then((data)=>{
+                return controller.keepProjectConsistency(req.params.id, (data && data.project)?data.project._id.toString():null, req.body.project);
+            })
             .then(()=>{
                 if(req.body.add_tags){
                     return Tag.countDocuments({_id: {"$in": req.body.add_tags}})
