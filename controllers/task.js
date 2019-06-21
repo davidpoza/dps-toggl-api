@@ -11,6 +11,40 @@ const valid_schemas = require("../utils/valid_schemas");
 const utils         = require("../utils/utils");
 
 let controller = {
+    /* Function to keep consistency on relationshipo project:tasks (1:n)
+    *  It adds the updated task to the new project tasks array.
+    *  And it removes from the old project tasks array.
+    *  Receives a data parameter which it's passed unchanged to not break then chain.
+    *  - case 1: new_project == undefined: the task project is not modified.
+    *  - case 2: old_project != null y new_project != null: the task has been changed from
+    *            an old project to a new project
+    *  - case 3: old_project == null and new_project != null: the task didn't have any project assigned
+    *            and now we assigned one to it.
+    *  - case 4: old_project != null and new_project == null: we remove the project of the task
+    */
+    keepProjectConsistency: (data, task_id, old_project, new_project)=>{
+        return new Promise((resolve, reject) => {
+            if(new_project == undefined)
+                return resolve(data); // si no modificamos el campo project, continuamos
+
+            //quitamos tarea del anterior proyecto
+            let update_remove_from_project = {};
+            if(old_project != null)
+                update_remove_from_project["$pull"] = { "tasks": task_id };
+            let update_add_to_project = {};
+            if(new_project != null)
+                update_add_to_project["$push"] = { "tasks": task_id };
+
+            let p_remove = old_project != null ? Project.findByIdAndUpdate({_id: old_project}, update_remove_from_project, {new: true}) : Promise.resolve();
+            let p_add =  Project.findByIdAndUpdate({_id:new_project}, update_add_to_project, {new: true});
+
+            Promise.all([p_remove,p_add])
+                .then(()=>resolve(data))
+                .catch((err)=>reject(err));
+        });
+    },
+
+
     /**
      * Parameters via body:
      *  -desc: String
@@ -34,7 +68,13 @@ let controller = {
             project: req.body.project || null,
             user: req.user._id
         });
+
+
         document.save()
+            .then(data=>controller.keepProjectConsistency(data, data._id.toString(), null, data.project?data.project._id.toString():undefined))
+            .then(data=>{
+                return    Task.populate(data, {path: "tags", select: "-__v -tasks -user"});
+            })
             .then((data)=>{
                 res.json({data:data});
             })
@@ -73,38 +113,6 @@ let controller = {
                 res.json({data: {message:"Task deleted succesfully."}});
             })
             .catch(err=>next(err));
-    },
-
-    /* Function to keep consistency on relationshipo project:tasks (1:n)
-    *  It adds the updated task to the new project tasks array.
-    *  And it removes from the old project tasks array.
-    *  - case 1: new_project == undefined: the task project is not modified.
-    *  - case 2: old_project != null y new_project != null: the task has been changed from
-    *            an old project to a new project
-    *  - case 3: old_project == null and new_project != null: the task didn't have any project assigned
-    *            and now we assigned one to it.
-    *  - case 4: old_project != null and new_project == null: we remove the project of the task
-    */
-    keepProjectConsistency: (task_id, old_project, new_project)=>{
-        return new Promise((resolve, reject) => {
-            if(new_project == undefined)
-                resolve(); // si no modificamos el campo project, continuamos
-
-            //quitamos tarea del anterior proyecto
-            let update_remove_from_project = {};
-            if(old_project != null)
-                update_remove_from_project["$pull"] = { "tasks": task_id };
-            let update_add_to_project = {};
-            if(new_project != null)
-                update_add_to_project["$push"] = { "tasks": task_id };
-
-            let p_remove = old_project != null ? Project.findByIdAndUpdate({_id: old_project}, update_remove_from_project, {new: true}) : Promise.resolve();
-            let p_add =  Project.findByIdAndUpdate({_id:new_project}, update_add_to_project, {new: true});
-
-            Promise.all([p_remove,p_add])
-                .then(()=>resolve())
-                .catch((err)=>reject(err));
-        });
     },
 
 
@@ -164,7 +172,7 @@ let controller = {
                     return Promise.resolve(data);
             })
             .then((data)=>{
-                return controller.keepProjectConsistency(req.params.id, (data && data.project)?data.project._id.toString():null, req.body.project);
+                return controller.keepProjectConsistency(data, req.params.id, (data && data.project)?data.project._id.toString():null, req.body.project);
             })
             .then(()=>{
                 if(req.body.add_tags){
