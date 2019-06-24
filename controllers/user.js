@@ -19,33 +19,27 @@ let controller = {
      * removed password and admin(not for admins) fields
      * Parameters via query
      * - include_me: Boolean
+     * - project: Object_id (members from this project)
      */
     getUsers: (req, res, next)=>{
+        let filter = {};
+        let projection = "";
         if(req.user.admin){
-            if(req.query.include_me)
-                User.find({}, "-password")
-                    .then(data=>res.json({data:data}))
-                    .catch(err=>next(err));
-            else
-                User.find({ _id: { $ne: req.user._id }}, "-password")
-                    .then(data=>res.json({data:data}))
-                    .catch(err=>next(err));
+            projection = "-password";
+            if(!req.query.include_me)
+                filter["_id"] = { $ne: req.user._id };
         }
         else{
-            if(req.query.include_me)
-                User.find({ }, "-password -admin")
-                    .then(data=>{
-                        res.json({data:data});
-                    })
-                    .catch(err=>next(err));
-            else
-                User.find({ _id: { $ne: req.user._id }}, "-password -admin")
-                    .then(data=>{
-                        res.json({data:data});
-                    })
-                    .catch(err=>next(err));
+            projection = "-password -admin";
+            if(!req.query.include_me)
+                filter["_id"] = { $ne: req.user._id };
         }
 
+        User.find(filter, projection)
+            .then(data=>{
+                res.json({data:data});
+            })
+            .catch(err=>next(err));
     },
     // get user data from logged user
     getMe: (req, res, next) => {
