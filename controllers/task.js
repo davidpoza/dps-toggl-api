@@ -44,6 +44,52 @@ let controller = {
         });
     },
 
+    /* Function to keep consistency on relationshipo tags:tasks (n:n)
+    *  It adds the updated task to each tag in add_tags array. (in updateTask is an array of only one element but in createTask is an array of n elements, )
+    *  It removes the updated task from each tag in delete_tags array. (normally is an array of only one element, but in deleteTask is an array of n elements)
+    *  Receives a data parameter which it's passed unchanged to not break then chain.
+    */
+    keepTagsConsistency: (data, task_id, add_tags, delete_tags)=>{
+        if(add_tags == null && delete_tags == null)
+            return Promise.resolve(data);
+        return new Promise((resolve, reject) => {
+            if(add_tags){
+                return Tag.countDocuments({_id: {"$in": add_tags}})
+                    .then(count=>{
+                        if(count != add_tags.length)
+                            throw new error_types.Error400("You are trying to add tags that do not exist.");
+                    })
+                    .then(()=>{ //buscamos todas entidades de los tag que estamos añadiendo
+                        return Tag.find({_id: { "$in": add_tags}});
+                    })
+                    .then((data)=>{ //añadimos las referencias a task en los tags correspondientes
+                        return Tag.updateMany({_id: {"$in": data}}, {
+                            "$push" : { "tasks": task_id }
+                        });
+                    })
+                    .then(()=>resolve(data))
+                    .catch(err=>reject(err));
+            }
+            else if(delete_tags){
+                return Tag.countDocuments({_id: {"$in": delete_tags}})
+                    .then(count=>{
+                        if(count != delete_tags.length)
+                            throw new error_types.Error400("You are trying to delete tags that do not exist.");
+                    })
+                    .then(()=>{ //buscamos todas entidades de los tag que estamos borrando
+                        return Tag.find({_id: { "$in": delete_tags}});
+                    })
+                    .then((data)=>{ //borramos las referencias a task en los tags correspondientes
+                        return Tag.updateMany({_id: {"$in": data}}, {
+                            "$pull" : { "tasks": task_id }
+                        });
+                    })
+                    .then(()=>resolve(data))
+                    .catch(err=>reject(err));
+            }
+        });
+    },
+
 
     /**
      * Parameters via body:
@@ -71,7 +117,8 @@ let controller = {
 
 
         document.save()
-            .then(data=>controller.keepProjectConsistency(data, data._id.toString(), null, data.project?data.project._id.toString():undefined))
+            .then(data=>controller.keepProjectConsistency(data, data._id.toString(), null, data.project ? data.project._id.toString():undefined))
+            .then(data=>controller.keepTagsConsistency(data, data._id.toString(), req.body.tags.length>0 ? req.body.tags:undefined, null)) //nunca se van a borran tags porque no tiene sentido
             .then(data=>{
                 return    Task.populate(data, {path: "tags", select: "-__v -tasks -user"});
             })
@@ -108,6 +155,9 @@ let controller = {
             })
             .then((data)=>{
                 return controller.keepProjectConsistency(data, req.params.id, (data && data.project) ? data.project._id.toString():null, null);
+            })
+            .then((data)=>{
+                return controller.keepTagsConsistency(data, req.params.id, null, (data && data.tags) ? data.tags:null);
             })
             .then(()=>{
                 return Task.deleteOne({ _id: req.params.id });
@@ -177,46 +227,8 @@ let controller = {
             .then((data)=>{
                 return controller.keepProjectConsistency(data, req.params.id, (data && data.project)?data.project._id.toString():null, req.body.project);
             })
-            .then(()=>{
-                if(req.body.add_tags){
-                    return Tag.countDocuments({_id: {"$in": req.body.add_tags}})
-                        .then(count=>{
-                            if(count != req.body.add_tags.length)
-                                throw new error_types.Error400("You are trying to add tags that do not exist.");
-                        });
-                }
-                if(req.body.delete_tags){
-                    return Tag.countDocuments({_id: {"$in": req.body.delete_tags}})
-                        .then(count=>{
-                            if(count != req.body.delete_tags.length)
-                                throw new error_types.Error400("You are trying to delete tags that do not exist.");
-                        });
-                }
-                return Promise.resolve();
-            })
-            .then(()=>{ //buscamos todas entidades de los tag que estamos añadiendo
-                if (req.body.add_tags)
-                    return Tag.find({_id: { $in: req.body.add_tags}});
-                return Promise.resolve();
-            })
-            .then((data)=>{ //añadimos las referencias a task en los tags correspondientes
-                if(req.body.add_tags)
-                    return Tag.updateMany({_id: {"$in": data}}, {
-                        "$push" : { "tasks": req.params.id }
-                    });
-                return Promise.resolve();
-            })
-            .then(()=>{ //buscamos todas entidades de los tag que estamos borrando
-                if (req.body.delete_tags)
-                    return Tag.find({_id: { $in: req.body.delete_tags}});
-                return Promise.resolve();
-            })
-            .then((data)=>{ //borramos las referencias a task en los tags correspondientes
-                if(req.body.delete_tags)
-                    return Tag.updateMany({_id: {"$in": data}}, {
-                        "$pull" : { "tasks": req.params.id }
-                    });
-                return Promise.resolve();
+            .then((data)=>{
+                return controller.keepTagsConsistency(data, req.params.id, req.body.add_tags, req.body.delete_tags);
             })
             .then(()=>{
                 return Task.findByIdAndUpdate(req.params.id, update, {new:true})
