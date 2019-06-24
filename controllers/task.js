@@ -270,9 +270,8 @@ let controller = {
      */
     getTasks: (req, res, next) => {
         let filter = {};
-        if(req.user.admin == false)
-            filter["user"] = req.user._id;
-        else if(req.query.user_id)
+        filter["user"] = req.user._id;
+        if(req.user.admin == true && req.query.user_id)
             filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
 
         if(req.query.date_start)
