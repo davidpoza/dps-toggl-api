@@ -24,7 +24,7 @@ let controller = {
     */
     keepProjectConsistency: (data, task_id, old_project, new_project)=>{
         return new Promise((resolve, reject) => {
-            if(new_project == undefined)
+            if(new_project === undefined)
                 return resolve(data); // si no modificamos el campo project, continuamos
 
             //quitamos tarea del anterior proyecto
@@ -36,7 +36,7 @@ let controller = {
                 update_add_to_project["$push"] = { "tasks": task_id };
 
             let p_remove = old_project != null ? Project.findByIdAndUpdate({_id: old_project}, update_remove_from_project, {new: true}) : Promise.resolve();
-            let p_add =  Project.findByIdAndUpdate({_id:new_project}, update_add_to_project, {new: true});
+            let p_add =  new_project != null ? Project.findByIdAndUpdate({_id:new_project}, update_add_to_project, {new: true}) : Promise.resolve();
 
             Promise.all([p_remove,p_add])
                 .then(()=>resolve(data))
@@ -104,7 +104,10 @@ let controller = {
                     throw(new error_types.Error403("You are not allowed to delete this task"));
                 }
                 else
-                    return Promise.resolve();
+                    return Promise.resolve(data);
+            })
+            .then((data)=>{
+                return controller.keepProjectConsistency(data, req.params.id, (data && data.project) ? data.project._id.toString():null, null);
             })
             .then(()=>{
                 return Task.deleteOne({ _id: req.params.id });
