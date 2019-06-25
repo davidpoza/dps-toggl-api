@@ -313,13 +313,26 @@ let controller = {
                     }
                 },
                 {
+                    "$lookup": {
+                        from: "projects",
+                        localField: "project",
+                        foreignField: "_id",
+                        as: "project"
+                    }
+                },
+                {
                     "$project": {
                         _id: "$_id",
-                        date: "$date",
+                        date: { $dateToString: {
+                            date: "$date",
+                            format: "%Y-%m-%d",
+                            timezone: "Europe/Madrid",
+                            onNull: null
+                        } },
                         desc: "$desc",
                         start_hour: "$start_hour",
                         end_hour: "$end_hour",
-                        project: "$project",
+                        project: { $ifNull: [ { "$arrayElemAt": [ "$project", 0 ] }, null ] },
                         tags: {
                             "$map": {
                                 "input": "$tags",
@@ -351,7 +364,13 @@ let controller = {
                                 first_name: "$user.first_name",
                                 last_name: "$user.last_name",
                             },
-                            project: "$project",
+                            project: {
+                                $cond: { if: { $eq: [ "$project", null ] }, then: null, else: {
+                                    _id: "$project._id",
+                                    name: "$project.name",
+                                    color: "$project.color"
+                                } }
+                            },
                             tags: "$tags"
 
                         } }
