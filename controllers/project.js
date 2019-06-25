@@ -164,7 +164,7 @@ let controller = {
                     /*we make intersection between new users and existing users, it must be void.
                     Otherwise it means a new member is already a member*/
                     if(data.members.filter(e => req.body.add_members.includes(e)).length != 0)
-                        throw(new error_types.Error400("Some user you are trying to add is already a member."));
+                        throw(new error_types.InfoError("Some user you are trying to add is already a member."));
                 }
                 else
                     return Promise.resolve();
