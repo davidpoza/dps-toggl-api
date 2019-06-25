@@ -67,12 +67,12 @@ let controller = {
      */
     getTags: (req, res, next) => {
         let filter = {};
-        if(req.user.admin == false)
-            filter["user"] = req.user._id;
-        else if(req.query.user_id)
+        filter["user"] = req.user._id;
+
+        if(req.user.admin == true && req.query.user_id)
             filter["user"] = req.query.user_id;
 
-        Tag.find(filter, "-user -tasks")
+        Tag.find(filter, "-user -tasks").sort("name")
             .then(data=>{
                 if(data)
                     res.json({data:data});
