@@ -25,7 +25,7 @@ let controller = {
                     throw new error_types.InfoError("user already exists");
                 }
                 else { //si no existe el usuario se crea/registra
-                    //console.log("creando usuario");
+                    logger.log({message:"Usuario registrado", level:"info", req });
                     let validation = validate(req.body, valid_schemas.register_user);
                     if(!validation.valid)
                         throw validation.errors;
@@ -36,7 +36,8 @@ let controller = {
                         first_name: req.body.first_name || "",
                         last_name: req.body.last_name || "",
                         password: hash,
-                        admin: false
+                        admin: false,
+                        active: false
                     });
                     return document.save();
                 }
@@ -55,8 +56,8 @@ let controller = {
             //console.log("ejecutando *callback auth* de authenticate para estrategia local");
 
             //si hubo un error en el callback verify relacionado con la consulta de datos de usuario
-            if (error || !user) {
-                next(new error_types.Error404("email or password not correct."));
+            if (error) {
+                next(new error_types.Error404(error.message));
             }else {
                 //console.log("*** comienza generacion token*****");
                 const payload = {

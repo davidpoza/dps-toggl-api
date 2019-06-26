@@ -20,6 +20,7 @@ const project_routes = require("./routes/project");
 const tag_routes     = require("./routes/tag");
 const task_routes    = require("./routes/task");
 const errorMdw       = require("./middleware/errors");
+const logger         = require("./utils/logger");
 
 app.use(helmet({
     frameguard: {
@@ -37,11 +38,12 @@ passport.use(new LocalStrategy({
     passwordField: "password",
     session: false
 }, (email, password, done)=>{
-    // console.log("ejecutando *callback verify* de estategia local");
+    logger.log({message:"ejecutando *callback verify* de estategia local", level:"debug" });
     User.findOne({email:email.toLowerCase()})
         .then(data=>{
-            if(data === null) return done(null, false); //el usuario no existe
-            else if(!bcrypt.compareSync(password, data.password)) { return done(null, false); } //no coincide la password
+            if(data === null) throw new Error("User does not exist"); //el usuario no existe
+            else if(data.active != true) throw new Error("Account is not active");
+            else if(!bcrypt.compareSync(password, data.password)) throw new Error("Wrong password"); //no coincide la password
             return done(null, data); //login ok
         })
         .catch(err=>done(err, null)); // error en DB
@@ -54,7 +56,7 @@ opts.secretOrKey = process.env.JWT_SECRET;
 opts.algorithms = [process.env.JWT_ALGORITHM];
 
 passport.use(new JwtStrategy(opts, (jwt_payload, done)=>{
-    // console.log("ejecutando *callback verify* de estategia jwt");
+    logger.log({message:"ejecutando *callback verify* de estategia jwt", level:"debug" });
     User.findOne({_id: jwt_payload.sub})
         .then(data=>{
             if (data === null) { //no existe el usuario
