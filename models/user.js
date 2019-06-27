@@ -11,7 +11,8 @@ const UserSchema = Schema({
     admin     : Boolean,
     avatar    : String,
     active    : Boolean,
-    created_on: Date
+    created_on: Date,
+    updated_on: Date,
 });
 
 UserSchema.pre("save", function(next){

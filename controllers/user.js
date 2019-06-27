@@ -86,6 +86,7 @@ let controller = {
         if(!validation.valid)
             return next(validation.errors);
 
+        update["updated_on"] = new Date();
         if(req.body.first_name) update["first_name"] = req.body.first_name;
         if(req.body.last_name) update["last_name"] = req.body.last_name;
         if(req.body.current_password && req.body.password && req.body.repeat_password && req.body.password == req.body.repeat_password){
