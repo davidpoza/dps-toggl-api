@@ -32,6 +32,7 @@ app.use(helmet({
         }
     }
 }));
+app.use(cors("*"));
 
 passport.use(new LocalStrategy({
     usernameField: "email",
@@ -92,7 +93,6 @@ app.use(bodyParser.urlencoded({extended:false}));//para que todo lo que llegue p
 app.use(bodyParser.json());
 
 app.use(passport.initialize());
-app.use(cors({origin: "*"}));
 
 
 //rutas
