@@ -55,7 +55,12 @@ let controller = {
      *  -id (user id)
      */
     getUser: (req, res, next) => {
-        User.findOne({ _id: req.params.id }, "-password -admin")
+        let projection = "";
+        if(req.user.admin)
+            projection = "-password -admin -active";
+        else
+            projection = "-password";
+        User.findOne({ _id: req.params.id }, projection)
             .then(data=>{res.json({data:data});})
             .catch(err=>next(err));
     },
@@ -135,7 +140,7 @@ let controller = {
             })
             .then(()=>User.findOneAndUpdate({ _id: req.params.id }, update, {select: "-password", new:true}))
             .then(data=>{
-                if(update["avatar"]){
+                if(update["avatar"] && old_avatar){
                     //si todo ha ido correctamente borramos el avatar anterior
                     let resizedFilepath = path.join(process.env.UPLOAD_DIR, "resized", old_avatar);
                     utils.deleteFiles([resizedFilepath], ()=>{
