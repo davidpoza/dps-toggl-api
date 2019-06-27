@@ -196,10 +196,12 @@ let controller = {
     deleteUser: (req, res, next) => {
         if(req.user.admin==false)
             return next(new error_types.Error403("You are not allowed to delete this user"));
+        if(req.params.id == req.user._id)
+            return next(new error_types.Error403("You can not destroy yourself"));
         User.findOneAndDelete({ _id: req.params.id })
             .then((data)=>{
                 if(data)
-                    res.json({data: {message:"User deleted succesfully."}});
+                    res.json({data: data});
                 else
                     return next(new error_types.Error400("User not found"));
             })
