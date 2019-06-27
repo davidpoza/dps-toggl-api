@@ -27,8 +27,8 @@ const validSchemas = {
     update_user: {
         "type": "object",
         "properties": {
-            "first_name": { "type": "string", "minLength": 1, "maxLength": 40 },
-            "last_name": { "type": "string", "minLength": 1, "maxLength": 40 },
+            "first_name": { "type": "string", "maxLength": 40 },
+            "last_name": { "type": "string", "maxLength": 40 },
             "current_password": { "type": "string" },
             "password": {
                 "type": "string", "minLength": 8, "maxLength": 40,
