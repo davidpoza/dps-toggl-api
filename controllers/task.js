@@ -278,7 +278,7 @@ let controller = {
             filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
 
         if(req.query.limit)
-            limit = req.query.limit;
+            limit = parseInt(req.query.limit);
 
         if(req.query.date_start)
             filter["date"] = { "$gte": new Date(req.query.date_start) };
@@ -413,7 +413,7 @@ let controller = {
                         }
                     ])
                         .sort("-date")
-                        .limit(limit?limit:1000)
+                        .limit(limit?limit:100000)
                 )
                 .then(data=>{
                     if(data){
