@@ -269,10 +269,16 @@ let controller = {
      *
      */
     getTasks: (req, res, next) => {
+        let total_days = 0; // días totales con tareas
         let filter = {};
+        let limit;
+
         filter["user"] = req.user._id;
         if(req.user.admin == true && req.query.user_id)
             filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
+
+        if(req.query.limit)
+            limit = req.query.limit;
 
         if(req.query.date_start)
             filter["date"] = { "$gte": new Date(req.query.date_start) };
@@ -292,111 +298,136 @@ let controller = {
                 .catch(err=>next(err));
         }
         else{
+            //contamos el total de días
             Task.aggregate([
                 {
                     "$match": filter
                 },
                 {
-                    "$lookup": {
-                        from: "users",
-                        localField: "user",
-                        foreignField: "_id",
-                        as: "user"
-                    }
-                },
-                {
-                    "$lookup": {
-                        from: "tags",
-                        localField: "tags",
-                        foreignField: "_id",
-                        as: "tags"
-                    }
-                },
-                {
-                    "$lookup": {
-                        from: "projects",
-                        localField: "project",
-                        foreignField: "_id",
-                        as: "project"
-                    }
-                },
-                {
-                    "$project": {
-                        _id: "$_id",
-                        date: { $dateToString: {
-                            date: "$date",
-                            format: "%Y-%m-%d",
-                            timezone: "Europe/Madrid",
-                            onNull: null
-                        } },
-                        desc: "$desc",
-                        start_hour: "$start_hour",
-                        end_hour: "$end_hour",
-                        project: { $ifNull: [ { "$arrayElemAt": [ "$project", 0 ] }, null ] },
-                        tags: {
-                            "$map": {
-                                "input": "$tags",
-                                "as": "tagsm",
-                                "in": {
-                                    _id: "$$tagsm._id",
-                                    name: "$$tagsm.name"
-                                }
-                            }
-                        },
-                        user: { "$arrayElemAt": [ "$user", 0 ] },
-                    }
-                },
-                {
                     "$group": {
-                        _id: { date: "$date" },
-                        task_count: {
-                            $sum: 1
-                        },
-                        tasks: { $push:  {
-                            _id: "$_id",
-                            desc: "$desc",
-                            start_hour: "$start_hour",
-                            end_hour: "$end_hour",
-                            date: "$date",
-                            user: {
-                                _id: "$user._id",
-                                email:"$user.email",
-                                first_name: "$user.first_name",
-                                last_name: "$user.last_name",
-                            },
-                            project: {
-                                $cond: { if: { $eq: [ "$project", null ] }, then: null, else: {
-                                    _id: "$project._id",
-                                    name: "$project.name",
-                                    color: "$project.color"
-                                } }
-                            },
-                            tags: "$tags"
-
-                        } }
+                        _id: { date: "$date" }
                     }
                 },
                 {
-                    "$project": {
-                        _id: 0,
-                        date: "$_id.date",
-                        tasks: "$tasks",
-                        task_count: 1,
-                        time: "$time"
-                    }
+                    "$count": "total"
                 }
             ])
-                .sort("date")
+                .then(data=>{
+                    total_days = data.length == 1 ? data[0].total : 0;
+                    return Promise.resolve();
+                })
+                .then(()=>
+                    //incluimos la cuenta en el resultado de la consulta
+                    Task.aggregate([
+                        {
+                            "$match": filter
+                        },
+                        {
+                            "$lookup": {
+                                from: "users",
+                                localField: "user",
+                                foreignField: "_id",
+                                as: "user"
+                            }
+                        },
+                        {
+                            "$lookup": {
+                                from: "tags",
+                                localField: "tags",
+                                foreignField: "_id",
+                                as: "tags"
+                            }
+                        },
+                        {
+                            "$lookup": {
+                                from: "projects",
+                                localField: "project",
+                                foreignField: "_id",
+                                as: "project"
+                            }
+                        },
+                        {
+                            "$project": {
+                                _id: "$_id",
+                                date: { $dateToString: {
+                                    date: "$date",
+                                    format: "%Y-%m-%d",
+                                    timezone: "Europe/Madrid",
+                                    onNull: null
+                                } },
+                                desc: "$desc",
+                                start_hour: "$start_hour",
+                                end_hour: "$end_hour",
+                                project: { $ifNull: [ { "$arrayElemAt": [ "$project", 0 ] }, null ] },
+                                tags: {
+                                    "$map": {
+                                        "input": "$tags",
+                                        "as": "tagsm",
+                                        "in": {
+                                            _id: "$$tagsm._id",
+                                            name: "$$tagsm.name"
+                                        }
+                                    }
+                                },
+                                user: { "$arrayElemAt": [ "$user", 0 ] },
+                            }
+                        },
+                        {
+                            "$group": {
+                                _id: { date: "$date" },
+                                task_count: {
+                                    $sum: 1
+                                },
+                                tasks: { $push:  {
+                                    _id: "$_id",
+                                    desc: "$desc",
+                                    start_hour: "$start_hour",
+                                    end_hour: "$end_hour",
+                                    date: "$date",
+                                    user: {
+                                        _id: "$user._id",
+                                        email:"$user.email",
+                                        first_name: "$user.first_name",
+                                        last_name: "$user.last_name",
+                                    },
+                                    project: {
+                                        $cond: { if: { $eq: [ "$project", null ] }, then: null, else: {
+                                            _id: "$project._id",
+                                            name: "$project.name",
+                                            color: "$project.color"
+                                        } }
+                                    },
+                                    tags: "$tags"
+
+                                } }
+                            }
+                        },
+                        {
+                            "$project": {
+                                _id: 0,
+                                date: "$_id.date",
+                                tasks: "$tasks",
+                                task_count: "$task_count",
+                                time: "$time"
+                            }
+                        }
+                    ])
+                        .sort("-date")
+                        .limit(limit?limit:1000)
+                )
                 .then(data=>{
                     if(data){
-                        data.map(d=>{
+                        let result = {};
+                        result["dates"] = data;
+                        result["total"] = total_days;
+                        result.dates.map(d=>{
                             d.time = d.tasks.reduce((prev,curr)=>{
                                 curr = utils.diffHoursBetHours(curr?curr.start_hour:"00:00:00", curr?curr.end_hour:"00:00:00");
                                 return(prev+curr);
                             },0);
                             return d;
                         });
-                        res.json({data:data});
+                        res.json({data:result});
                     }
                     else
                         throw new error_types.Error404("There are no tasks");
