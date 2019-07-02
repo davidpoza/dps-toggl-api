@@ -99,6 +99,7 @@ let controller = {
      *  -end_hour: String
      *  -tags: [ObjectId]
      *  -project: ObjectId
+     *  -hour_value: float
      */
     createTask: (req, res, next) => {
         let validation = validate(req.body, valid_schemas.create_task);
@@ -112,7 +113,8 @@ let controller = {
             end_hour: req.body.end_hour,
             tags: req.body.tags || [],
             project: req.body.project || null,
-            user: req.user._id
+            user: req.user._id,
+            hour_value: req.body.hour_value || 0
         });
 
 
@@ -182,7 +184,8 @@ let controller = {
      *  -date: String
      *  -start_hour: String
      *  -end_hour: String
-     *  -project: ObjectId,
+     *  -project: ObjectId
+     *  -hour_value: float
      *  -add_tags: [Objectid, ObjectId, ...]
      *  -delete_tags: [Objectid, ObjectId, ...]
      */
@@ -201,6 +204,7 @@ let controller = {
         if(req.body.end_hour) update["end_hour"] = req.body.end_hour;
         if(req.body.project != -1 && req.body.project !== undefined)
             update["project"] = req.body.project;
+        if(req.body.hour_value) update["hour_value"] = req.body.hour_value;
         if(req.body.add_tags) update["$push"] = { "tags": { "$each" : req.body.add_tags } };
         if(req.body.delete_tags) update["$pullAll"] = { "tags": req.body.delete_tags };
 
@@ -242,11 +246,18 @@ let controller = {
 
     getTask: (req, res, next) => {
         let filter = {};
+        let projection = "";
+
         filter["_id"] = req.params.id;
-        if(req.user.admin == false)
+        if(req.user.admin == false){
             filter["user"] = req.user._id;
+            projection = "-__v -tasks -user -hour_value";
+        }
+        else{
+            projection = "-__v -tasks -user";
+        }
         Task.findOne(filter)
-            .populate({path: "tags", select: "-__v -tasks -user"})
+            .populate({path: "tags", select: projection})
             .then(data=>{
                 if(data)
                     res.json({data:data});
@@ -356,6 +367,7 @@ let controller = {
                                     onNull: null
                                 } },
                                 desc: "$desc",
+                                hour_value: "$hour_value",
                                 start_hour: "$start_hour",
                                 end_hour: "$end_hour",
                                 project: { $ifNull: [ { "$arrayElemAt": [ "$project", 0 ] }, null ] },
@@ -383,6 +395,7 @@ let controller = {
                                     desc: "$desc",
                                     start_hour: "$start_hour",
                                     end_hour: "$end_hour",
+                                    hour_value: "$hour_value",
                                     date: "$date",
                                     user: {
                                         _id: "$user._id",

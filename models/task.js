@@ -11,6 +11,7 @@ const TaskSchema = Schema({
     user      : { type: Schema.ObjectId, ref:"User", required: true},
     tags      : [{ type: Schema.ObjectId, ref:"Tag"}],
     project   : { type: Schema.ObjectId, ref:"Project"},
+    hour_value: { type: Number },
 });
 
 module.exports = mongoose.model("Task", TaskSchema, "tasks");
