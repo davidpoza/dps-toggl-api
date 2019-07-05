@@ -82,7 +82,10 @@ let controller = {
         else if(!req.query.all)
             filter["$or"] = [{owner:req.user._id}, {members:req.user._id}];
 
-        Project.find(filter).populate("tasks").exec()
+        Project.find(filter)
+            .populate("tasks")
+            .populate({path: "members", select: "-__v -active -admin -password"})
+            .exec()
             .then(data=>{
                 if(data){
                     //data = data.map(e=>e.transform());
@@ -108,7 +111,9 @@ let controller = {
         filter["_id"] = req.params.id;
 
         Project.findOne(filter).populate("tasks")
-            .populate({path: "owner", select: "-password -admin"}).exec()
+            .populate({path: "owner", select: "-__v -active -password -admin"})
+            .populate({path: "tasks", populate: {path: "user", select: "-__v -active -admin -password"}})
+            .exec()
             .then(data=>{
                 if(data)
                     res.json({data:data});
@@ -187,7 +192,9 @@ let controller = {
                 return Promise.resolve();
             })
             .then(()=>{
-                return Project.findByIdAndUpdate(req.params.id, update, {new:true});
+                return Project.findByIdAndUpdate(req.params.id, update, {new:true})
+                    .populate({path: "tasks", populate: {path: "user", select: "-__v -active -admin -password"}})
+                    .populate({path: "members", select: "-__v -active -admin -password"});
             })
             .then((data)=>{
                 res.json({data: data});
