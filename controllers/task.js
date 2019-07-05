@@ -237,6 +237,7 @@ let controller = {
             .then(()=>{
                 return Task.findByIdAndUpdate(req.params.id, update, {new:true})
                     .populate({path: "tags", select: "-__v -tasks -user"})
+                    .populate({path: "user", select: "-__v -active -admin -password"})
                     .lean();
             })
             .then((data)=>{
@@ -260,6 +261,7 @@ let controller = {
         }
         Task.findOne(filter)
             .populate({path: "tags", select: projection})
+            .populate({path: "user", select: "-__v -active -admin -password"})
             .lean()
             .then(data=>{
                 if(data){
@@ -279,7 +281,7 @@ let controller = {
      *
      * Parameters via query:
      * -date: "2019-06-10" (if date is not specified then fetchs all tasks grouped by dates)
-     * -user_id: ObjectId (Only for admins)
+     * -user_id: ObjectId (Only for admins). (Special value "all" for get tasks from everyone)
      * -date_start: "2019-06-10" (including the date)
      * -date_end: "2019-06-12" (including the date)
      *
@@ -290,8 +292,13 @@ let controller = {
         let limit;
 
         filter["user"] = req.user._id;
-        if(req.user.admin == true && req.query.user_id)
-            filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
+        if(req.user.admin == true && req.query.user_id){
+            if(req.query.user_id == "all")
+                delete filter["user"];
+            else
+                filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
+
+        }
 
         if(req.query.limit)
             limit = parseInt(req.query.limit);
