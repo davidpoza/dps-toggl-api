@@ -236,9 +236,11 @@ let controller = {
             })
             .then(()=>{
                 return Task.findByIdAndUpdate(req.params.id, update, {new:true})
-                    .populate({path: "tags", select: "-__v -tasks -user"});
+                    .populate({path: "tags", select: "-__v -tasks -user"})
+                    .lean();
             })
             .then((data)=>{
+                data.date = utils.standarizeDate(data.date);
                 res.json({data: data});
             })
             .catch(err=>next(err));
@@ -258,9 +260,12 @@ let controller = {
         }
         Task.findOne(filter)
             .populate({path: "tags", select: projection})
+            .lean()
             .then(data=>{
-                if(data)
+                if(data){
+                    data.date = utils.standarizeDate(data.date);
                     res.json({data:data});
+                }
                 else
                     throw new error_types.Error404("Task not found or insufficient permissions.");
             })

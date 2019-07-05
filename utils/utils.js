@@ -42,5 +42,16 @@ const utils = {
         let total_min = parseInt(hour2)*60 - parseInt(hour1)*60 + parseInt(min2) - parseInt(min1);
         return(Math.floor(total_min/60 * 10) / 10); //truncamos a un decimal
     },
+
+    /** Recibe un número y devuelve una cadena con la longitud indicada como segundo parámetro.
+        Rellenando si es necesario con ceros por la izquierda */
+    pad(str, max) {
+        str = str.toString();
+        return str.length < max ? this.pad("0" + str, max) : str;
+    },
+
+    standarizeDate(date){
+        return `${date.getFullYear()}-${this.pad(date.getMonth()+1,2)}-${this.pad(date.getDate(),2)}`;
+    },
 };
 module.exports = utils;
