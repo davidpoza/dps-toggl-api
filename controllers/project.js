@@ -69,18 +69,17 @@ let controller = {
      * Unless you are admin and can fetch any project using all=true parameter.
      *
      * Parameters via query:
-     *  -user_id: ObjectId (only for admins)
-     *  -all: Boolean (only for admins)
+     *  -user_id: ObjectId (only for admins) user_id = "all" for fetch all projects from everyone
      */
     getProjects: (req, res, next) => {
         let filter = {};
-        if(req.user.admin == false){
+        if(req.user.admin == false)
             filter["$or"] = [{owner:req.user._id}, {members:req.user._id}];
-        }
-        else if(req.query.user_id)
+        else if(req.user.admin == true && req.query.user_id === undefined)
+            filter["$or"] = [{owner:req.user._id}, {members:req.user._id}];
+        else if(req.user.admin == true && req.query.user_id != "all")
             filter["owner"] = req.query.user_id;
-        else if(!req.query.all)
-            filter["$or"] = [{owner:req.user._id}, {members:req.user._id}];
+
 
         Project.find(filter)
             .populate("tasks")

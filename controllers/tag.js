@@ -63,13 +63,16 @@ let controller = {
     /**
      * only can be fetched the owned tags. Unless you are admin and can fetch any tag
      * Parameters via query:
-     *  -user_id: ObjectId     *
+     *  -user_id: ObjectId (only for admins) user_id = "all" for fetch all tags from everyone
      */
     getTags: (req, res, next) => {
         let filter = {};
-        filter["user"] = req.user._id;
 
-        if(req.user.admin == true && req.query.user_id)
+        if(req.user.admin == false)
+            filter["user"] = req.user._id;
+        else if(req.user.admin == true && req.query.user_id === undefined)
+            filter["user"] = req.user._id;
+        else if(req.user.admin == true && req.query.user_id != "all")
             filter["user"] = req.query.user_id;
 
         Tag.find(filter, "-user -tasks").sort("name")
