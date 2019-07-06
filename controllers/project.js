@@ -15,6 +15,8 @@ let controller = {
      *  -color: String
      */
     createProject: (req, res, next) => {
+        if(req.user.admin==false)
+            next(new error_types.Error403("You are not authorized to create projects."));
         let validation = validate(req.body, valid_schemas.create_project);
         if(!validation.valid)
             throw validation.errors;
