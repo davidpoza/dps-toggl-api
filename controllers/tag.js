@@ -75,7 +75,7 @@ let controller = {
         else if(req.user.admin == true && req.query.user_id != "all")
             filter["user"] = req.query.user_id;
 
-        Tag.find(filter, "-user -tasks").sort("name")
+        Tag.find(filter, "-tasks").sort("name")
             .then(data=>{
                 if(data)
                     res.json({data:data});
