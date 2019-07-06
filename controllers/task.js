@@ -238,6 +238,7 @@ let controller = {
                 return Task.findByIdAndUpdate(req.params.id, update, {new:true})
                     .populate({path: "tags", select: "-__v -tasks -user"})
                     .populate({path: "user", select: "-__v -active -admin -password"})
+                    .populate({path: "project", select: "-__v -members -tasks -owner -created_on"})
                     .lean();
             })
             .then((data)=>{
@@ -262,6 +263,7 @@ let controller = {
         Task.findOne(filter)
             .populate({path: "tags", select: projection})
             .populate({path: "user", select: "-__v -active -admin -password"})
+            .populate({path: "project", select: "-__v -members -tasks -owner -created_on"})
             .lean()
             .then(data=>{
                 if(data){
@@ -311,7 +313,10 @@ let controller = {
 
         if(req.query.date){
             filter["date"] = req.query.date;
-            Task.find(filter).populate({path:"user", select: "-password -admin"}).populate({path:"tags", select: "-user -tasks"}).populate("project").exec()
+            Task.find(filter).populate({path:"user", select: "-password -admin"})
+                .populate({path:"tags", select: "-user -tasks"})
+                .populate("project")
+                .exec()
                 .then(data=>{
                     if(data)
                         res.json({data:data});
