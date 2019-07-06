@@ -110,8 +110,9 @@ let controller = {
         }
         filter["_id"] = req.params.id;
 
-        Project.findOne(filter).populate("tasks")
+        Project.findOne(filter)
             .populate({path: "owner", select: "-__v -active -password -admin"})
+            .populate({path: "members", select: "-__v -active -password -admin"})
             .populate({path: "tasks", populate: {path: "user", select: "-__v -active -admin -password"}})
             .exec()
             .then(data=>{
