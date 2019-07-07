@@ -284,6 +284,7 @@ let controller = {
      * Parameters via query:
      * -date: "2019-06-10" (if date is not specified then fetchs all tasks grouped by dates)
      * -user_id: ObjectId (Only for admins). (Special value "all" for get tasks from everyone)
+     * -project_id: ObjectId
      * -date_start: "2019-06-10" (including the date)
      * -date_end: "2019-06-12" (including the date)
      *
@@ -293,7 +294,7 @@ let controller = {
         let filter = {};
         let limit;
 
-        filter["user"] = req.user._id;
+        filter["user"] = req.user._id; //to limit non admin user to only be able to fetch their own tasks
         if(req.user.admin == true && req.query.user_id){
             if(req.query.user_id == "all")
                 delete filter["user"];
@@ -304,6 +305,12 @@ let controller = {
 
         if(req.query.limit)
             limit = parseInt(req.query.limit);
+
+        if(req.query.project_id && req.query.project_id != -1){
+            filter["project"] = mongoose.Types.ObjectId(req.query.project_id);
+        }
+        else if(req.query.project_id && req.query.project_id == -1)
+            filter["project"] = null;
 
         if(req.query.date_start)
             filter["date"] = { "$gte": new Date(req.query.date_start) };
@@ -325,6 +332,7 @@ let controller = {
                 })
                 .catch(err=>next(err));
         }
+
         else{
             //contamos el total de días
             Task.aggregate([
