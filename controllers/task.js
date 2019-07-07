@@ -294,19 +294,22 @@ let controller = {
         let filter = {};
         let limit;
 
+
         filter["user"] = req.user._id; //to limit non admin user to only be able to fetch their own tasks
         if(req.user.admin == true && req.query.user_id){
             if(req.query.user_id == "all")
                 delete filter["user"];
-            else
-                filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
+            else{
+                if(utils.validObjectId(req.query.user_id))
+                    filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
+            }
 
         }
 
         if(req.query.limit)
             limit = parseInt(req.query.limit);
 
-        if(req.query.project_id && req.query.project_id != -1){
+        if(req.query.project_id && req.query.project_id != -1 && utils.validObjectId(req.query.project_id)){
             filter["project"] = mongoose.Types.ObjectId(req.query.project_id);
         }
         else if(req.query.project_id && req.query.project_id == -1)
@@ -319,14 +322,17 @@ let controller = {
             filter["date"] = Object.assign(filter["date"]?filter["date"]:{}, { "$lte": new Date(req.query.date_end) });
 
         if(req.query.date){
-            filter["date"] = req.query.date;
-            Task.find(filter).populate({path:"user", select: "-password -admin"})
-                .populate({path:"tags", select: "-user -tasks"})
-                .populate("project")
-                .exec()
+            filter["date"] = new Date(req.query.date);
+            Task.find(filter)
+                .populate({path: "tags", select: "-__v -tasks -user -hour_value"})
+                .populate({path: "user", select: "-__v -active -admin -password"})
+                .populate({path: "project", select: "-__v -members -tasks -owner -created_on"})
+                .lean()
                 .then(data=>{
-                    if(data)
+                    if(data){
+                        data = data.map(d=>{d.date = utils.standarizeDate(d.date); return d;});
                         res.json({data:data});
+                    }
                     else
                         throw new error_types.Error404("There are no tasks");
                 })

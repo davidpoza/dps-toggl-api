@@ -7,6 +7,11 @@ const utils = {
         return re.test(email);
     },
 
+    validObjectId: (objectid)=>{
+        let re = /^[a-f\d]{24}$/i;
+        return re.test(objectid);
+    },
+
     getIp: (req)=>{
         let ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
         return ip;
