@@ -262,7 +262,7 @@ let controller = {
         }
         Task.findOne(filter)
             .populate({path: "tags", select: projection})
-            .populate({path: "user", select: "-__v -active -admin -password"})
+            .populate({path: "user", select: "-__v -active -admin -password -created_on -updated_on"})
             .populate({path: "project", select: "-__v -members -tasks -owner -created_on"})
             .lean()
             .then(data=>{
@@ -329,14 +329,15 @@ let controller = {
         if(req.query.description)
             filter["$and"].push({"$text": { "$search":  req.query.description}});
 
-        if(req.query.project_id && req.query.project_id != -1 && utils.validObjectId(req.query.project_id)){
+        if(req.query.project_id && req.query.project_id != -1){
             if(Array.isArray(req.query.project_id)){
                 filter["$and"].push({"$or":[]});
                 req.query.project_id.forEach(id=>{
-                    filter["$and"][filter["$and"].length -1]["$or"].push({"project":mongoose.Types.ObjectId(id)});
+                    if(utils.validObjectId(id))
+                        filter["$and"][filter["$and"].length -1]["$or"].push({"project":mongoose.Types.ObjectId(id)});
                 });
             }
-            else
+            else if(utils.validObjectId(req.query.project_id))
                 filter["$and"].push({"project": mongoose.Types.ObjectId(req.query.project_id)});
         }
         else if(req.query.project_id && req.query.project_id == -1)
