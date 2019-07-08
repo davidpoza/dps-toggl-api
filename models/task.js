@@ -14,4 +14,8 @@ const TaskSchema = Schema({
     hour_value: { type: Number },
 });
 
+TaskSchema.index({
+    desc: "text"
+});
+
 module.exports = mongoose.model("Task", TaskSchema, "tasks");

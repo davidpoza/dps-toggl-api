@@ -281,13 +281,14 @@ let controller = {
      * The user, tags and project fields are populated. But user field projection removes
      * the password and admin fields.
      *
-     * Parameters via query:
+     * Parameters via query to filter results:
+     *
      * -date: "2019-06-10" (if date is not specified then fetchs all tasks grouped by dates)
      * -user_id: ObjectId (Only for admins). (Special value "all" for get tasks from everyone)
      * -project_id: ObjectId
      * -date_start: "2019-06-10" (including the date)
      * -date_end: "2019-06-12" (including the date)
-     *
+     * -description: "text"
      */
     getTasks: (req, res, next) => {
         let total_days = 0; // días totales con tareas
@@ -324,6 +325,9 @@ let controller = {
 
         if(req.query.limit)
             limit = parseInt(req.query.limit);
+
+        if(req.query.description)
+            filter["$and"].push({"$text": { "$search":  req.query.description}});
 
         if(req.query.project_id && req.query.project_id != -1 && utils.validObjectId(req.query.project_id)){
             if(Array.isArray(req.query.project_id)){
