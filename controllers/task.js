@@ -325,8 +325,16 @@ let controller = {
         if(req.query.limit)
             limit = parseInt(req.query.limit);
 
-        if(req.query.project_id && req.query.project_id != -1 && utils.validObjectId(req.query.project_id))
-            filter["$and"].push({"project": mongoose.Types.ObjectId(req.query.project_id)});
+        if(req.query.project_id && req.query.project_id != -1 && utils.validObjectId(req.query.project_id)){
+            if(Array.isArray(req.query.project_id)){
+                filter["$and"].push({"$or":[]});
+                req.query.project_id.forEach(id=>{
+                    filter["$and"][filter["$and"].length -1]["$or"].push({"project":mongoose.Types.ObjectId(id)});
+                });
+            }
+            else
+                filter["$and"].push({"project": mongoose.Types.ObjectId(req.query.project_id)});
+        }
         else if(req.query.project_id && req.query.project_id == -1)
             filter["$and"].push({"project": null});
 
