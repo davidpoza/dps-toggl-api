@@ -294,35 +294,50 @@ let controller = {
         let filter = {};
         let limit;
 
+        filter["$and"] = [];
 
-        filter["user"] = req.user._id; //to limit non admin user to only be able to fetch their own tasks
+        //to limit non admin user to only be able to fetch their own tasks
+        filter["$and"].push({"user": req.user._id});
+
         if(req.user.admin == true && req.query.user_id){
             if(req.query.user_id == "all")
-                delete filter["user"];
+                delete filter["$and"];
             else{
-                if(utils.validObjectId(req.query.user_id))
-                    filter["user"] = mongoose.Types.ObjectId(req.query.user_id);
+                filter["$and"].pop();
+                if(Array.isArray(req.query.user_id)){
+                    filter["$and"].push({"$or":[]});
+                    req.query.user_id.forEach(id=>{
+                        filter["$and"][0]["$or"].push({"user":mongoose.Types.ObjectId(id)});
+                    });
+                }
+                else{
+                    if(utils.validObjectId(req.query.user_id))
+                        filter["$and"].push({"user": mongoose.Types.ObjectId(req.query.user_id)});
+                }
+
             }
 
         }
 
+        if(!filter["$and"])
+            filter["$and"] = [];
+
         if(req.query.limit)
             limit = parseInt(req.query.limit);
 
-        if(req.query.project_id && req.query.project_id != -1 && utils.validObjectId(req.query.project_id)){
-            filter["project"] = mongoose.Types.ObjectId(req.query.project_id);
-        }
+        if(req.query.project_id && req.query.project_id != -1 && utils.validObjectId(req.query.project_id))
+            filter["$and"].push({"project": mongoose.Types.ObjectId(req.query.project_id)});
         else if(req.query.project_id && req.query.project_id == -1)
-            filter["project"] = null;
+            filter["$and"].push({"project": null});
 
         if(req.query.date_start)
-            filter["date"] = { "$gte": new Date(req.query.date_start) };
+            filter["$and"].push({"date": { "$gte": new Date(req.query.date_start) }});
 
         if(req.query.date_end)
-            filter["date"] = Object.assign(filter["date"]?filter["date"]:{}, { "$lte": new Date(req.query.date_end) });
+            filter["$and"].push({"date": { "$lte": new Date(req.query.date_end) }});
 
         if(req.query.date){
-            filter["date"] = new Date(req.query.date);
+            filter["$and"].push({"date": new Date(req.query.date)});
             Task.find(filter)
                 .populate({path: "tags", select: "-__v -tasks -user -hour_value"})
                 .populate({path: "user", select: "-__v -active -admin -password"})
