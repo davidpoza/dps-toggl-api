@@ -4,7 +4,7 @@ const mongoose    = require("mongoose");
 const Schema      = mongoose.Schema;
 
 const ProjectSchema = Schema({
-    name   : {type: String, required: true},
+    name   : {type: String, required: true, unique: true, dropDups: true},
     color  : {type: String, required: true},
     created_on: Date,
     owner  : { type: Schema.ObjectId, ref:"User"},

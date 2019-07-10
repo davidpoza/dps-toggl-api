@@ -27,9 +27,14 @@ let error_middlewares = {
             res.status(401).json({ error: { message: error.message } });
             logger.log({message: error.message, stack: error.stack, level:"error", status:401, req });
         }
-        else if (error instanceof error_types.Error400) {
+        else if (error instanceof error_types.Error400){
             logger.log({message: error.message, stack: error.stack, level:"error", status:400, req });
             res.status(400).json({ error: { message: error.message } });
+        }
+        else if (error.name == "MongoError" && error.code == 11000)
+        {
+            logger.log({message: error.message, stack: error.stack, level:"error", status:400, req });
+            res.status(400).json({ error: { message: "identifier already exists" } });
         }
         else if (Array.isArray(error) && error[0] instanceof jsonschema.ValidationError) {
             let msg_array = [];
