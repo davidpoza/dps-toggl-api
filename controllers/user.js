@@ -57,9 +57,9 @@ let controller = {
     getUser: (req, res, next) => {
         let projection = "";
         if(req.user.admin)
-            projection = "-password -admin -active";
-        else
             projection = "-password";
+        else
+            projection = "-password -admin -active";
         User.findOne({ _id: req.params.id }, projection)
             .then(data=>{res.json({data:data});})
             .catch(err=>next(err));
