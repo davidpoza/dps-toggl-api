@@ -188,6 +188,8 @@ let controller = {
      *  -hour_value: float
      *  -add_tags: [Objectid, ObjectId, ...]
      *  -delete_tags: [Objectid, ObjectId, ...]
+     *  -limit: integer.
+     *  -skip: integer
      */
     updateTask: (req, res, next) => {
         if(req.body.add_tags && req.body.delete_tags)
@@ -294,6 +296,13 @@ let controller = {
         let total_days = 0; // días totales con tareas
         let filter = {};
         let limit;
+        let skip;
+
+        if(req.query.limit)
+            limit = parseInt(req.query.limit);
+
+        if(req.query.skip)
+            skip = parseInt(req.query.skip);
 
         filter["$and"] = [];
 
@@ -322,9 +331,6 @@ let controller = {
 
         if(!filter["$and"])
             filter["$and"] = [];
-
-        if(req.query.limit)
-            limit = parseInt(req.query.limit);
 
         if(req.query.description)
             filter["$and"].push({"$text": { "$search":  req.query.description}});
@@ -485,7 +491,8 @@ let controller = {
                         }
                     ])
                         .sort("-date")
-                        .limit(limit?limit:100000)
+                        .skip(skip || 0)
+                        .limit(limit || 100000)
                 )
                 .then(data=>{
                     if(data){
