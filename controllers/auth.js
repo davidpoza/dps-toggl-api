@@ -37,7 +37,8 @@ let controller = {
                         last_name: req.body.last_name || "",
                         password: hash,
                         admin: false,
-                        active: false
+                        active: false,
+                        current_task_start_hour: ""
                     });
                     return document.save();
                 }

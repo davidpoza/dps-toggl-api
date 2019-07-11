@@ -13,6 +13,7 @@ const UserSchema = Schema({
     active    : Boolean,
     created_on: Date,
     updated_on: Date,
+    current_task_start_hour: String, //format HH:MM:SS to keep timer "running" when we close the browser
 });
 
 UserSchema.pre("save", function(next){

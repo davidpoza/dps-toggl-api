@@ -85,6 +85,8 @@ let controller = {
         if(req.user._id != req.params.id && req.user.admin==false)
             return next(new error_types.Error403("You are not allowed to update this user."));
 
+        if(req.body.current_task_start_hour == "null")
+            req.body.current_task_start_hour = null;
         let validation = validate(req.body, valid_schemas.update_user);
         if(!validation.valid)
             return next(validation.errors);
@@ -93,7 +95,7 @@ let controller = {
         if(req.body.first_name) update["first_name"] = req.body.first_name;
         if(req.body.last_name) update["last_name"] = req.body.last_name;
         if(req.body.active) update["active"] = req.body.active;
-
+        if(req.body.current_task_start_hour !== undefined) update["current_task_start_hour"] = req.body.current_task_start_hour;
         if(req.body.admin && req.user.admin==true) update["admin"] = req.body.admin;
 
         if(req.body.current_password && req.body.password && req.body.repeat_password && req.body.password == req.body.repeat_password){

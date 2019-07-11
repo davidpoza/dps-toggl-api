@@ -20,7 +20,8 @@ const validSchemas = {
             "email": {
                 "type": "string", "minLength": 6, "maxLength": 40,
                 "pattern": regex_email,
-                "required": true }
+                "required": true },
+            "current_task_start_hour": {"type": "null"}
         },
         "additionalProperties": false
     },
@@ -39,7 +40,8 @@ const validSchemas = {
                 "pattern": regex_password
             },
             "active": Boolean,
-            "admin": Boolean
+            "admin": Boolean,
+            "current_task_start_hour": { "anyOf": [{"type": "string", "pattern": regex_hour, "required": false}, {"type": "null"}]}
         },
         "additionalProperties": false
     },
