@@ -37,7 +37,9 @@ const validSchemas = {
             "repeat_password": {
                 "type": "string", "minLength": 8, "maxLength": 40,
                 "pattern": regex_password
-            }
+            },
+            "active": Boolean,
+            "admin": Boolean
         },
         "additionalProperties": false
     },

@@ -82,6 +82,9 @@ let controller = {
         let update = {};
         let old_avatar = "";
 
+        if(req.user._id != req.params.id && req.user.admin==false)
+            return next(new error_types.Error403("You are not allowed to update this user."));
+
         let validation = validate(req.body, valid_schemas.update_user);
         if(!validation.valid)
             return next(validation.errors);
@@ -89,6 +92,10 @@ let controller = {
         update["updated_on"] = new Date();
         if(req.body.first_name) update["first_name"] = req.body.first_name;
         if(req.body.last_name) update["last_name"] = req.body.last_name;
+        if(req.body.active) update["active"] = req.body.active;
+
+        if(req.body.admin && req.user.admin==true) update["admin"] = req.body.admin;
+
         if(req.body.current_password && req.body.password && req.body.repeat_password && req.body.password == req.body.repeat_password){
             let new_hash = bcrypt.hashSync(req.body.password, parseInt(process.env.BCRYPT_ROUNDS));
             update["password"] = new_hash;
@@ -96,8 +103,7 @@ let controller = {
         else if(req.body.password)
             return next(new error_types.Error403("Password not changed, need to pass repeat_password field."));
 
-        if(req.user._id != req.params.id && req.user.admin==false)
-            return next(new error_types.Error403("You are not allowed to update this user."));
+
 
         let imageUpload = new Promise((resolve, reject)=>{
             if(req.files && req.files.avatar){
