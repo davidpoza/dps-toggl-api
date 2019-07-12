@@ -38,7 +38,9 @@ let controller = {
                         password: hash,
                         admin: false,
                         active: false,
-                        current_task_start_hour: ""
+                        current_task_start_hour: null,
+                        current_task_date: null,
+                        current_task_desc: null
                     });
                     return document.save();
                 }

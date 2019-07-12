@@ -1,7 +1,7 @@
 const regex_objectId = /^[a-f\d]{24}$/i;
 const regex_color = /^#[abcdef0-9]{6}$/;
 const regex_password = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!?/@.-_=])[0-9a-zA-Z!?/@.-_=]{8,}$/;
-const regex_date = /\d{4}-\d{2}-\d{2}$/;
+const regex_date = /^\d{4}-\d{2}-\d{2}$/;
 const regex_hour = /^([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/; //formato HH:MM:SS
 const regex_email = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
 
@@ -21,7 +21,9 @@ const validSchemas = {
                 "type": "string", "minLength": 6, "maxLength": 40,
                 "pattern": regex_email,
                 "required": true },
-            "current_task_start_hour": {"type": "null"}
+            "current_task_start_hour": {"type": "null"},
+            "current_task_date": {"type": "null"},
+            "current_task_desc": {"type": "null"}
         },
         "additionalProperties": false
     },
@@ -41,7 +43,9 @@ const validSchemas = {
             },
             "active": Boolean,
             "admin": Boolean,
-            "current_task_start_hour": { "anyOf": [{"type": "string", "pattern": regex_hour, "required": false}, {"type": "null"}]}
+            "current_task_start_hour": { "anyOf": [{"type": "string", "pattern": regex_hour, "required": false}, {"type": "null"}]},
+            "current_task_date": { "anyOf": [{ "type": "string", pattern: regex_date, "required": false}, {"type": "null"}]},
+            "current_task_desc": { "anyOf": [{ "type": "string", "minLength": 1, "maxLength": 120, "required": false }, {"type": "null"}]}
         },
         "additionalProperties": false
     },

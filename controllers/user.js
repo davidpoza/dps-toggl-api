@@ -87,6 +87,11 @@ let controller = {
 
         if(req.body.current_task_start_hour == "null")
             req.body.current_task_start_hour = null;
+        if(req.body.current_task_date == "null")
+            req.body.current_task_date = null;
+        if(req.body.current_task_desc == "null")
+            req.body.current_task_desc = null;
+
         let validation = validate(req.body, valid_schemas.update_user);
         if(!validation.valid)
             return next(validation.errors);
@@ -96,6 +101,8 @@ let controller = {
         if(req.body.last_name) update["last_name"] = req.body.last_name;
         if(req.body.active) update["active"] = req.body.active;
         if(req.body.current_task_start_hour !== undefined) update["current_task_start_hour"] = req.body.current_task_start_hour;
+        if(req.body.current_task_date !== undefined) update["current_task_date"] = req.body.current_task_date;
+        if(req.body.current_task_desc !== undefined) update["current_task_desc"] = req.body.current_task_desc;
         if(req.body.admin && req.user.admin==true) update["admin"] = req.body.admin;
 
         if(req.body.current_password && req.body.password && req.body.repeat_password && req.body.password == req.body.repeat_password){
