@@ -4,7 +4,7 @@ const mongoogse = require("mongoose");
 
 const app       = require("./app");
 const logger = require("./utils/logger");
-const port      = process.env.port;
+const port      = process.env.PORT;
 
 mongoogse.Promise = global.Promise;
 mongoogse.connect(process.env.MONGO_URI, { useNewUrlParser: true, useCreateIndex: true, useFindAndModify:false })
