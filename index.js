@@ -8,13 +8,30 @@ const port      = process.env.PORT;
 
 mongoogse.Promise = global.Promise;
 mongoogse.connect(process.env.MONGO_URI, { useNewUrlParser: true, useCreateIndex: true, useFindAndModify:false })
-
     .then(() => {
-        console.log("Conexión con exito");
-        logger.log({message:"Conexión con mongodb exitosa", level:"info" });
+        console.log("Success on mongoose connection");
+        logger.log({message:"Success on mongoose connection", level:"info" });
         app.listen(port, () => {
-            console.log("Servidor corriendo correctamente en la url: localhost:"+port);
-            logger.log({message: "Servidor corriendo correctamente en la url: localhost:"+port, level:"info" });
+            console.log("Server running on: localhost:"+port);
+            logger.log({message: "Server running on: localhost:"+port, level:"info" });
         });
     })
     .catch(err => console.log(err));
+
+process.on("SIGINT", function(){
+    mongoose.connection.close(function(){
+        console.log("Mongoose connection closed due to server exit");
+        logger.log({message:"Mongoose connection closed due to server exit", level:"info" });
+        process.exit(0);
+    });
+});
+
+process.on("uncaughtException", function(){
+    mongoose.connection.close(function(){
+        console.log("Mongoose connection closed due to server error");
+        logger.log({message:"Mongoose connection closed due to server error", level:"error" });
+        console.log("Server error. Uncaught Exception. Closing");
+        logger.log({message:"Server error. Uncaught Exception. Closing", level:"error" });
+        process.exit(0);
+    });
+});
